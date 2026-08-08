@@ -50,6 +50,7 @@ export function ConversationItem({
         status={otherUser?.status}
         showStatus={conversation.type === "direct"}
         colorOverride={conversation.avatarColor}
+        imageUrl={otherUser?.avatarUrl}
         size="md"
       />
       <div className="min-w-0 flex-1">

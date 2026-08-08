@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { Pin, X } from "lucide-react";
 import type { Message } from "../../types";
 import { useOnClickOutside } from "../../hooks/useOnClickOutside";
-import { getUser } from "../../data/mock/users";
+import { useChat } from "../../context/ChatContext";
 import { cn } from "../../utils/cn";
 
 export function PinnedBar({
@@ -12,6 +12,7 @@ export function PinnedBar({
   pinnedMessages: Message[];
   onUnpin: (messageId: string) => void;
 }) {
+  const { users } = useChat();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useOnClickOutside(ref, () => setOpen(false));
@@ -19,7 +20,7 @@ export function PinnedBar({
   if (pinnedMessages.length === 0) return null;
 
   const latest = pinnedMessages[pinnedMessages.length - 1];
-  const latestSender = getUser(latest.senderId)?.name ?? "Someone";
+  const latestSender = users.find((u) => u.id === latest.senderId)?.name ?? "Someone";
 
   return (
     <div ref={ref} className="relative border-b border-border bg-panel">
@@ -48,7 +49,7 @@ export function PinnedBar({
             .slice()
             .reverse()
             .map((m) => {
-              const sender = getUser(m.senderId)?.name ?? "Someone";
+              const sender = users.find((u) => u.id === m.senderId)?.name ?? "Someone";
               return (
                 <div key={m.id} className="flex items-start gap-2 rounded-md px-2.5 py-2 hover:bg-surface-hover">
                   <div className="min-w-0 flex-1">

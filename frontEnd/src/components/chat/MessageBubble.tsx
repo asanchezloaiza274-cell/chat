@@ -22,6 +22,7 @@ interface MessageBubbleProps {
   isOwn: boolean;
   showAvatar: boolean;
   senderName: string;
+  senderAvatarUrl?: string;
   onOpenImages: (images: ImageAttachment[], index: number) => void;
   searchQuery?: string;
   isActiveMatch?: boolean;
@@ -33,6 +34,7 @@ export function MessageBubble({
   isOwn,
   showAvatar,
   senderName,
+  senderAvatarUrl,
   onOpenImages,
   searchQuery,
   isActiveMatch,
@@ -78,7 +80,9 @@ export function MessageBubble({
       ref={registerRef}
       className={cn("group/message flex items-end gap-2 px-4 py-0.5", isOwn && "flex-row-reverse")}
     >
-      <div className="w-8 shrink-0">{showAvatar && !isOwn && <Avatar name={senderName} size="sm" />}</div>
+      <div className="w-8 shrink-0">
+        {showAvatar && !isOwn && <Avatar name={senderName} size="sm" imageUrl={senderAvatarUrl} />}
+      </div>
 
       <div className={cn("relative flex max-w-[min(560px,75%)] flex-col", isOwn ? "items-end" : "items-start")}>
         <MessageHoverToolbar

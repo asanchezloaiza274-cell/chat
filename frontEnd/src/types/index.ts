@@ -1,5 +1,7 @@
 export type UserStatus = "online" | "offline" | "away";
 
+export type Visibility = "everyone" | "contacts" | "nobody";
+
 export interface User {
   id: string;
   name: string;
@@ -9,6 +11,14 @@ export interface User {
   bio?: string;
   email?: string;
   joinedAt?: string;
+  avatarUrl?: string;
+  notifyMessages?: boolean;
+  notifySounds?: boolean;
+  notifyMentions?: boolean;
+  notifyDesktop?: boolean;
+  showOnlineStatus?: boolean;
+  lastSeenVisibility?: Visibility;
+  profilePhotoVisibility?: Visibility;
 }
 
 export type MessageStatus = "sending" | "sent" | "delivered" | "read" | "failed";

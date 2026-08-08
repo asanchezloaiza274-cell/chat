@@ -9,6 +9,7 @@ interface AvatarProps {
   showStatus?: boolean;
   className?: string;
   colorOverride?: string;
+  imageUrl?: string;
 }
 
 const SIZE_CLASSES: Record<NonNullable<AvatarProps["size"]>, string> = {
@@ -33,19 +34,27 @@ const STATUS_COLOR: Record<UserStatus, string> = {
   offline: "bg-ink-faint",
 };
 
-export function Avatar({ name, size = "md", status, showStatus, className, colorOverride }: AvatarProps) {
+export function Avatar({ name, size = "md", status, showStatus, className, colorOverride, imageUrl }: AvatarProps) {
   return (
     <div className={cn("relative inline-flex shrink-0", className)}>
-      <div
-        className={cn(
-          "flex select-none items-center justify-center rounded-full font-semibold text-white",
-          SIZE_CLASSES[size],
-        )}
-        style={{ backgroundColor: colorOverride ?? avatarColor(name) }}
-        aria-hidden="true"
-      >
-        {initials(name)}
-      </div>
+      {imageUrl ? (
+        <img
+          src={imageUrl}
+          alt={name}
+          className={cn("select-none rounded-full object-cover", SIZE_CLASSES[size])}
+        />
+      ) : (
+        <div
+          className={cn(
+            "flex select-none items-center justify-center rounded-full font-semibold text-white",
+            SIZE_CLASSES[size],
+          )}
+          style={{ backgroundColor: colorOverride ?? avatarColor(name) }}
+          aria-hidden="true"
+        >
+          {initials(name)}
+        </div>
+      )}
       {showStatus && status && (
         <span
           className={cn(

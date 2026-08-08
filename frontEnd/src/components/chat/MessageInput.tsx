@@ -5,19 +5,27 @@ import { EmojiPicker } from "./EmojiPicker";
 import { ReplyPreview } from "./ReplyPreview";
 import { IconButton } from "../ui/IconButton";
 import { useChat } from "../../context/ChatContext";
-import { getUser } from "../../data/mock/users";
 import { createAttachmentFromFile } from "../../utils/attachments";
 import type { Attachment } from "../../types";
 import { formatDuration } from "../../utils/format";
 
+interface PendingItem {
+  attachment: Attachment;
+  file: File;
+}
+
+const TYPING_STOP_DELAY = 2500;
+
 export function MessageInput({ conversationId }: { conversationId: string }) {
-  const { sendMessage, replyDraft, setReplyDraft } = useChat();
+  const { users, sendMessage, sendTyping, replyDraft, setReplyDraft } = useChat();
   const [text, setText] = useState("");
-  const [pendingAttachments, setPendingAttachments] = useState<Attachment[]>([]);
+  const [pendingItems, setPendingItems] = useState<PendingItem[]>([]);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const recordingInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+  const typingStopTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isTypingRef = useRef(false);
 
   useEffect(() => {
     const el = textareaRef.current;
@@ -38,23 +46,63 @@ export function MessageInput({ conversationId }: { conversationId: string }) {
     };
   }, [isRecording]);
 
-  const replySender = replyDraft ? getUser(replyDraft.senderId) : undefined;
+  useEffect(() => {
+    return () => {
+      if (typingStopTimer.current) clearTimeout(typingStopTimer.current);
+      if (isTypingRef.current) sendTyping(conversationId, false);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversationId]);
+
+  const replySender = replyDraft ? users.find((u) => u.id === replyDraft.senderId) : undefined;
+
+  function handleTextChange(value: string) {
+    setText(value);
+    if (!isTypingRef.current) {
+      isTypingRef.current = true;
+      sendTyping(conversationId, true);
+    }
+    if (typingStopTimer.current) clearTimeout(typingStopTimer.current);
+    typingStopTimer.current = setTimeout(() => {
+      isTypingRef.current = false;
+      sendTyping(conversationId, false);
+    }, TYPING_STOP_DELAY);
+  }
+
+  function stopTyping() {
+    if (typingStopTimer.current) clearTimeout(typingStopTimer.current);
+    if (isTypingRef.current) {
+      isTypingRef.current = false;
+      sendTyping(conversationId, false);
+    }
+  }
 
   function handleSend() {
-    if (!text.trim() && pendingAttachments.length === 0) return;
-    sendMessage(conversationId, text, pendingAttachments.length > 0 ? pendingAttachments : undefined);
+    if (!text.trim() && pendingItems.length === 0) return;
+    stopTyping();
+    sendMessage(
+      conversationId,
+      text,
+      pendingItems.length > 0 ? pendingItems.map((p) => p.attachment) : undefined,
+      pendingItems.length > 0 ? pendingItems.map((p) => p.file) : undefined,
+    );
     setText("");
-    setPendingAttachments([]);
+    setPendingItems([]);
   }
 
   async function handleFilesSelected(files: FileList) {
-    const attachments = await Promise.all(Array.from(files).map(createAttachmentFromFile));
-    setPendingAttachments((prev) => [...prev, ...attachments]);
+    const items = await Promise.all(
+      Array.from(files).map(async (file) => ({ attachment: await createAttachmentFromFile(file), file })),
+    );
+    setPendingItems((prev) => [...prev, ...items]);
   }
 
   function handleSendRecording() {
-    const attachment: Attachment = { type: "audio", id: crypto.randomUUID(), duration: Math.max(1, recordingSeconds) };
-    sendMessage(conversationId, "", [attachment]);
+    stopTyping();
+    const duration = Math.max(1, recordingSeconds);
+    const attachment: Attachment = { type: "audio", id: crypto.randomUUID(), duration };
+    const file = new File([new Blob([], { type: "audio/webm" })], "voice-message.webm", { type: "audio/webm" });
+    sendMessage(conversationId, "", [attachment], [file]);
     setIsRecording(false);
   }
 
@@ -68,9 +116,9 @@ export function MessageInput({ conversationId }: { conversationId: string }) {
         />
       )}
 
-      {pendingAttachments.length > 0 && (
+      {pendingItems.length > 0 && (
         <div className="flex flex-wrap gap-2 border-b border-border px-4 py-2.5">
-          {pendingAttachments.map((att) => (
+          {pendingItems.map(({ attachment: att }) => (
             <div key={att.id} className="flex items-center gap-1.5 rounded-lg border border-border bg-surface py-1 pl-1 pr-2 text-xs">
               {att.type === "image" ? (
                 att.url ? (
@@ -93,7 +141,7 @@ export function MessageInput({ conversationId }: { conversationId: string }) {
                 {att.type === "audio" ? `Voice · ${formatDuration(att.duration)}` : att.name}
               </span>
               <button
-                onClick={() => setPendingAttachments((prev) => prev.filter((p) => p.id !== att.id))}
+                onClick={() => setPendingItems((prev) => prev.filter((p) => p.attachment.id !== att.id))}
                 aria-label="Remove attachment"
                 className="text-ink-faint hover:text-ink"
               >
@@ -116,7 +164,8 @@ export function MessageInput({ conversationId }: { conversationId: string }) {
             <textarea
               ref={textareaRef}
               value={text}
-              onChange={(e) => setText(e.target.value)}
+              onChange={(e) => handleTextChange(e.target.value)}
+              onBlur={stopTyping}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -127,7 +176,7 @@ export function MessageInput({ conversationId }: { conversationId: string }) {
               rows={1}
               className="max-h-40 min-h-[40px] flex-1 resize-none bg-transparent py-2 text-sm text-ink placeholder:text-ink-faint outline-none"
             />
-            <EmojiPicker onSelect={(emoji) => setText((t) => t + emoji)} />
+            <EmojiPicker onSelect={(emoji) => handleTextChange(text + emoji)} />
           </>
         )}
 
@@ -140,7 +189,7 @@ export function MessageInput({ conversationId }: { conversationId: string }) {
               <Send size={17} />
             </IconButton>
           </>
-        ) : text.trim() || pendingAttachments.length > 0 ? (
+        ) : text.trim() || pendingItems.length > 0 ? (
           <IconButton
             label="Send message"
             onClick={handleSend}

@@ -70,6 +70,7 @@ export function ConversationInfoPanel({ open, onClose, conversation, messages, o
               status={otherUser?.status}
               showStatus={conversation.type === "direct"}
               colorOverride={conversation.avatarColor}
+              imageUrl={otherUser?.avatarUrl}
             />
             <h3 className="mt-3 text-base font-semibold text-ink">{name}</h3>
             <p className="mt-0.5 text-sm text-ink-muted">
@@ -93,7 +94,13 @@ export function ConversationInfoPanel({ open, onClose, conversation, messages, o
                   if (!member) return null;
                   return (
                     <div key={id} className="flex items-center gap-2.5">
-                      <Avatar name={member.name} size="sm" status={member.status} showStatus />
+                      <Avatar
+                        name={member.name}
+                        size="sm"
+                        status={member.status}
+                        showStatus
+                        imageUrl={member.avatarUrl}
+                      />
                       <div className="min-w-0">
                         <p className="truncate text-sm text-ink">
                           {member.name} {member.id === currentUser.id && <span className="text-ink-faint">(you)</span>}

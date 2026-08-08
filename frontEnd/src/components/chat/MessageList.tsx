@@ -105,6 +105,7 @@ export function MessageList({
                   isOwn={isOwn}
                   showAvatar={i === block.items.length - 1}
                   senderName={sender?.name ?? "Unknown"}
+                  senderAvatarUrl={sender?.avatarUrl}
                   onOpenImages={onOpenImages}
                   searchQuery={searchQuery}
                   isActiveMatch={activeMatchId === message.id}

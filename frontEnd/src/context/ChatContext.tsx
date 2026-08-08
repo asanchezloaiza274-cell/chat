@@ -8,22 +8,22 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { users as mockUsers, CURRENT_USER_ID, getUser } from "../data/mock/users";
-import { conversations as mockConversations } from "../data/mock/conversations";
-import { messagesByConversation as mockMessages } from "../data/mock/messages";
-import type { Attachment, Conversation, Message, User } from "../types";
-import { getOtherParticipants } from "../utils/conversationHelpers";
+import { api, getAccessToken } from "../lib/api";
+import { chatSocket, type WsMessage } from "../lib/ws";
+import { mapConversation, mapMessage, mapUser } from "../lib/mappers";
+import { useAuth } from "./AuthContext";
+import { useToast } from "./ToastContext";
+import type { Attachment, Conversation, Message, ReplyRef, User } from "../types";
 
-const AUTO_REPLIES = [
-  "Sounds good!",
-  "Got it, thanks.",
-  "Perfect, talk soon.",
-  "On it 👍",
-  "Makes sense to me.",
-  "I'll take a look shortly.",
-  "Appreciate it!",
-  "Let's do that.",
-];
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+interface PendingSend {
+  conversationId: string;
+  text: string;
+  attachments?: Attachment[];
+  files?: File[];
+  replyTo?: ReplyRef;
+}
 
 interface ChatContextValue {
   users: User[];
@@ -32,10 +32,12 @@ interface ChatContextValue {
   messages: Record<string, Message[]>;
   activeConversationId: string | null;
   typingUsers: Record<string, string[]>;
+  isLoading: boolean;
   setActiveConversationId: (id: string | null) => void;
-  sendMessage: (conversationId: string, text: string, attachments?: Attachment[]) => void;
-  replyDraft: { messageId: string; senderId: string; preview: string } | null;
-  setReplyDraft: (draft: { messageId: string; senderId: string; preview: string } | null) => void;
+  sendMessage: (conversationId: string, text: string, attachments?: Attachment[], files?: File[]) => void;
+  replyDraft: ReplyRef | null;
+  setReplyDraft: (draft: ReplyRef | null) => void;
+  sendTyping: (conversationId: string, isTyping: boolean) => void;
   toggleReaction: (conversationId: string, messageId: string, emoji: string) => void;
   deleteMessage: (conversationId: string, messageId: string) => void;
   editMessage: (conversationId: string, messageId: string, text: string) => void;
@@ -45,261 +47,450 @@ interface ChatContextValue {
   toggleMuteConversation: (conversationId: string) => void;
   deleteConversation: (conversationId: string) => void;
   markConversationRead: (conversationId: string) => void;
-  startDirectConversation: (userId: string) => string;
-  createGroupConversation: (name: string, participantIds: string[], avatarColor?: string) => string;
-  updateCurrentUser: (updates: Partial<User>) => void;
+  startDirectConversation: (userId: string) => Promise<string>;
+  createGroupConversation: (name: string, participantIds: string[], avatarColor?: string) => Promise<string>;
+  updateCurrentUser: (updates: Partial<User> & { avatarFile?: File }) => Promise<void>;
+  updateSettings: (updates: Partial<User>) => Promise<void>;
 }
 
 const ChatContext = createContext<ChatContextValue | null>(null);
 
+function upsert(list: Message[], message: Message): Message[] {
+  const exists = list.some((m) => m.id === message.id);
+  return exists ? list.map((m) => (m.id === message.id ? message : m)) : [...list, message];
+}
+
 export function ChatProvider({ children }: { children: ReactNode }) {
-  const [users, setUsers] = useState<User[]>(mockUsers);
-  const [conversations, setConversations] = useState<Conversation[]>(mockConversations);
-  const [messages, setMessages] = useState<Record<string, Message[]>>(mockMessages);
+  const { currentUser, setCurrentUser } = useAuth();
+  const { showToast } = useToast();
+
+  const [otherUsers, setOtherUsers] = useState<User[]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [messages, setMessages] = useState<Record<string, Message[]>>({});
   const [activeConversationId, setActiveConversationIdState] = useState<string | null>(null);
   const [typingUsers, setTypingUsers] = useState<Record<string, string[]>>({});
-  const [replyDraft, setReplyDraft] = useState<{ messageId: string; senderId: string; preview: string } | null>(
-    null,
-  );
+  const [replyDraft, setReplyDraft] = useState<ReplyRef | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const activeIdRef = useRef(activeConversationId);
+  const activeConversationIdRef = useRef(activeConversationId);
+  const currentUserIdRef = useRef(currentUser!.id);
+  const messagesRef = useRef(messages);
+  const loadedConversationsRef = useRef<Set<string>>(new Set());
+  const pendingSendsRef = useRef<Record<string, PendingSend>>({});
+
   useEffect(() => {
-    activeIdRef.current = activeConversationId;
+    activeConversationIdRef.current = activeConversationId;
   }, [activeConversationId]);
+  useEffect(() => {
+    currentUserIdRef.current = currentUser!.id;
+  }, [currentUser]);
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
-  const currentUser = users.find((u) => u.id === CURRENT_USER_ID)!;
+  const users = useMemo(() => [currentUser!, ...otherUsers], [currentUser, otherUsers]);
 
-  const updateCurrentUser = useCallback((updates: Partial<User>) => {
-    setUsers((prev) => prev.map((u) => (u.id === CURRENT_USER_ID ? { ...u, ...updates } : u)));
+  const seedLastMessage = useCallback((conversationId: string, rawLastMessage: any) => {
+    if (!rawLastMessage) return;
+    setMessages((prev) => (prev[conversationId] ? prev : { ...prev, [conversationId]: [mapMessage(rawLastMessage)] }));
   }, []);
 
-  const setActiveConversationId = useCallback((id: string | null) => {
-    setActiveConversationIdState(id);
-    setReplyDraft(null);
-    if (id) {
-      setConversations((prev) => prev.map((c) => (c.id === id ? { ...c, unreadCount: 0 } : c)));
+  // -- initial load ----------------------------------------------------
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const [rawConversations, rawUsers] = await Promise.all([
+          api.get<any[]>("/api/conversations/"),
+          api.get<any[]>("/api/users/"),
+        ]);
+        if (cancelled) return;
+        setConversations(rawConversations.map(mapConversation));
+        setOtherUsers(rawUsers.map(mapUser));
+        rawConversations.forEach((raw) => seedLastMessage(raw.id, raw.last_message));
+      } catch {
+        if (!cancelled) showToast("Couldn't load your conversations", "error");
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // -- websocket ---------------------------------------------------------
+  useEffect(() => {
+    function handle(msg: WsMessage) {
+      switch (msg.type) {
+        case "message.created":
+        case "message.updated": {
+          const conversationId = msg.conversation_id as string;
+          const message = mapMessage(msg.message);
+          setMessages((prev) => ({ ...prev, [conversationId]: upsert(prev[conversationId] ?? [], message) }));
+          if (
+            msg.type === "message.created" &&
+            message.senderId !== currentUserIdRef.current &&
+            conversationId !== activeConversationIdRef.current
+          ) {
+            setConversations((prev) =>
+              prev.map((c) => (c.id === conversationId ? { ...c, unreadCount: c.unreadCount + 1 } : c)),
+            );
+          }
+          break;
+        }
+        case "conversation.created": {
+          const conversation = mapConversation(msg.conversation);
+          setConversations((prev) => (prev.some((c) => c.id === conversation.id) ? prev : [conversation, ...prev]));
+          seedLastMessage(conversation.id, (msg.conversation as any).last_message);
+          break;
+        }
+        case "conversation.updated": {
+          const conversation = mapConversation(msg.conversation);
+          setConversations((prev) => prev.map((c) => (c.id === conversation.id ? conversation : c)));
+          break;
+        }
+        case "conversation.deleted": {
+          const conversationId = msg.conversation_id as string;
+          setConversations((prev) => prev.filter((c) => c.id !== conversationId));
+          setMessages((prev) => {
+            const next = { ...prev };
+            delete next[conversationId];
+            return next;
+          });
+          break;
+        }
+        case "conversation.read": {
+          const conversationId = msg.conversation_id as string;
+          const userId = msg.user_id as string;
+          const readAt = new Date(msg.read_at as string).getTime();
+          if (userId === currentUserIdRef.current) {
+            setConversations((prev) => prev.map((c) => (c.id === conversationId ? { ...c, unreadCount: 0 } : c)));
+          } else {
+            setMessages((prev) => ({
+              ...prev,
+              [conversationId]: (prev[conversationId] ?? []).map((m) =>
+                m.senderId === currentUserIdRef.current && m.status !== "read" && new Date(m.createdAt).getTime() <= readAt
+                  ? { ...m, status: "read" as const }
+                  : m,
+              ),
+            }));
+          }
+          break;
+        }
+        case "typing": {
+          const conversationId = msg.conversation_id as string;
+          const userId = msg.user_id as string;
+          const isTyping = msg.is_typing as boolean;
+          setTypingUsers((prev) => {
+            const current = prev[conversationId] ?? [];
+            const next = isTyping ? Array.from(new Set([...current, userId])) : current.filter((id) => id !== userId);
+            return { ...prev, [conversationId]: next };
+          });
+          break;
+        }
+        case "presence": {
+          const userId = msg.user_id as string;
+          const status = msg.status as User["status"];
+          const lastSeenAt = msg.last_seen_at as string | undefined;
+          setOtherUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, status, lastSeen: lastSeenAt ?? u.lastSeen } : u)));
+          break;
+        }
+      }
+    }
+
+    chatSocket.connect(getAccessToken);
+    const unsubscribe = chatSocket.onMessage(handle);
+    return () => {
+      unsubscribe();
+      chatSocket.disconnect();
+    };
+  }, [seedLastMessage]);
+
+  const loadConversationMessages = useCallback(async (conversationId: string) => {
+    if (loadedConversationsRef.current.has(conversationId)) return;
+    loadedConversationsRef.current.add(conversationId);
+    try {
+      const raw = await api.get<any[]>(`/api/conversations/${conversationId}/messages/`);
+      setMessages((prev) => ({ ...prev, [conversationId]: raw.map(mapMessage) }));
+    } catch {
+      loadedConversationsRef.current.delete(conversationId);
     }
   }, []);
 
   const markConversationRead = useCallback((conversationId: string) => {
     setConversations((prev) => prev.map((c) => (c.id === conversationId ? { ...c, unreadCount: 0 } : c)));
+    api.post(`/api/conversations/${conversationId}/read/`).catch(() => undefined);
   }, []);
 
-  const updateMessage = useCallback(
-    (conversationId: string, messageId: string, updater: (m: Message) => Message) => {
-      setMessages((prev) => ({
-        ...prev,
-        [conversationId]: (prev[conversationId] ?? []).map((m) => (m.id === messageId ? updater(m) : m)),
-      }));
+  const setActiveConversationId = useCallback(
+    (id: string | null) => {
+      setActiveConversationIdState(id);
+      setReplyDraft(null);
+      if (id) {
+        markConversationRead(id);
+        loadConversationMessages(id);
+      }
     },
-    [],
+    [markConversationRead, loadConversationMessages],
   );
 
+  const sendTyping = useCallback((conversationId: string, isTyping: boolean) => {
+    chatSocket.send({ action: "typing", conversation_id: conversationId, is_typing: isTyping });
+  }, []);
+
+  const performSend = useCallback(async (tempId: string, payload: PendingSend) => {
+    const { conversationId, text, attachments, files, replyTo } = payload;
+    try {
+      const form = new FormData();
+      if (text.trim()) form.append("text", text.trim());
+      if (replyTo) form.append("reply_to_id", replyTo.messageId);
+      if (files && files.length > 0) {
+        const meta = files.map((_, i) => {
+          const att = attachments?.[i];
+          return att?.type === "audio" ? { duration: att.duration } : {};
+        });
+        files.forEach((file) => form.append("files", file));
+        form.append("meta", JSON.stringify(meta));
+      }
+      const raw = await api.post<any>(`/api/conversations/${conversationId}/messages/`, form);
+      const real = mapMessage(raw);
+      setMessages((prev) => ({
+        ...prev,
+        [conversationId]: upsert((prev[conversationId] ?? []).filter((m) => m.id !== tempId), real),
+      }));
+      delete pendingSendsRef.current[tempId];
+    } catch {
+      setMessages((prev) => ({
+        ...prev,
+        [conversationId]: (prev[conversationId] ?? []).map((m) =>
+          m.id === tempId ? { ...m, status: "failed" as const } : m,
+        ),
+      }));
+    }
+  }, []);
+
   const sendMessage = useCallback(
-    (conversationId: string, text: string, attachments?: Attachment[]) => {
-      const id = crypto.randomUUID();
-      const message: Message = {
-        id,
+    (conversationId: string, text: string, attachments?: Attachment[], files?: File[]) => {
+      const tempId = `temp-${crypto.randomUUID()}`;
+      const replyTo = replyDraft ?? undefined;
+      const optimisticMessage: Message = {
+        id: tempId,
         conversationId,
-        senderId: currentUser.id,
+        senderId: currentUserIdRef.current,
         text: text.trim() || undefined,
         attachments,
         createdAt: new Date().toISOString(),
         status: "sending",
-        replyTo: replyDraft ?? undefined,
+        replyTo,
       };
-
-      setMessages((prev) => ({
-        ...prev,
-        [conversationId]: [...(prev[conversationId] ?? []), message],
-      }));
+      setMessages((prev) => ({ ...prev, [conversationId]: [...(prev[conversationId] ?? []), optimisticMessage] }));
       setReplyDraft(null);
 
-      setTimeout(() => updateMessage(conversationId, id, (m) => ({ ...m, status: "sent" })), 400);
-      setTimeout(() => updateMessage(conversationId, id, (m) => ({ ...m, status: "delivered" })), 1100);
-
-      const conversation = conversations.find((c) => c.id === conversationId);
-      if (conversation && conversation.type === "direct") {
-        const otherId = getOtherParticipants(conversation, currentUser.id)[0];
-        const otherUser = getUser(otherId);
-        if (otherUser && otherUser.status === "online" && Math.random() < 0.85) {
-          setTimeout(() => {
-            setTypingUsers((prev) => ({ ...prev, [conversationId]: [otherId] }));
-          }, 1400);
-
-          const replyDelay = 1400 + 1200 + Math.random() * 1400;
-          setTimeout(() => {
-            setTypingUsers((prev) => {
-              const next = { ...prev };
-              delete next[conversationId];
-              return next;
-            });
-            const reply: Message = {
-              id: crypto.randomUUID(),
-              conversationId,
-              senderId: otherId,
-              text: AUTO_REPLIES[Math.floor(Math.random() * AUTO_REPLIES.length)],
-              createdAt: new Date().toISOString(),
-              status: "delivered",
-            };
-            setMessages((prev) => ({
-              ...prev,
-              [conversationId]: [...(prev[conversationId] ?? []), reply],
-            }));
-            updateMessage(conversationId, id, (m) => ({ ...m, status: "read" }));
-            if (activeIdRef.current !== conversationId) {
-              setConversations((prev) =>
-                prev.map((c) => (c.id === conversationId ? { ...c, unreadCount: c.unreadCount + 1 } : c)),
-              );
-            }
-          }, replyDelay);
-        }
-      }
+      const payload: PendingSend = { conversationId, text, attachments, files, replyTo };
+      pendingSendsRef.current[tempId] = payload;
+      performSend(tempId, payload);
     },
-    [conversations, currentUser.id, replyDraft, updateMessage],
-  );
-
-  const toggleReaction = useCallback(
-    (conversationId: string, messageId: string, emoji: string) => {
-      updateMessage(conversationId, messageId, (m) => {
-        const reactions = m.reactions ? [...m.reactions] : [];
-        const idx = reactions.findIndex((r) => r.emoji === emoji);
-        if (idx === -1) {
-          reactions.push({ emoji, userIds: [currentUser.id] });
-        } else {
-          const already = reactions[idx].userIds.includes(currentUser.id);
-          const userIds = already
-            ? reactions[idx].userIds.filter((id) => id !== currentUser.id)
-            : [...reactions[idx].userIds, currentUser.id];
-          if (userIds.length === 0) {
-            reactions.splice(idx, 1);
-          } else {
-            reactions[idx] = { ...reactions[idx], userIds };
-          }
-        }
-        return { ...m, reactions };
-      });
-    },
-    [currentUser.id, updateMessage],
-  );
-
-  const deleteMessage = useCallback(
-    (conversationId: string, messageId: string) => {
-      updateMessage(conversationId, messageId, (m) => ({
-        ...m,
-        deleted: true,
-        text: undefined,
-        attachments: undefined,
-        reactions: undefined,
-        pinned: false,
-      }));
-    },
-    [updateMessage],
-  );
-
-  const editMessage = useCallback(
-    (conversationId: string, messageId: string, text: string) => {
-      updateMessage(conversationId, messageId, (m) => ({ ...m, text, edited: true }));
-    },
-    [updateMessage],
-  );
-
-  const togglePinMessage = useCallback(
-    (conversationId: string, messageId: string) => {
-      updateMessage(conversationId, messageId, (m) => ({ ...m, pinned: !m.pinned }));
-    },
-    [updateMessage],
+    [replyDraft, performSend],
   );
 
   const retryMessage = useCallback(
     (conversationId: string, messageId: string) => {
-      updateMessage(conversationId, messageId, (m) => ({ ...m, status: "sending" }));
-      setTimeout(() => updateMessage(conversationId, messageId, (m) => ({ ...m, status: "sent" })), 600);
-      setTimeout(() => updateMessage(conversationId, messageId, (m) => ({ ...m, status: "delivered" })), 1300);
+      const pending = pendingSendsRef.current[messageId];
+      const fallback = messagesRef.current[conversationId]?.find((m) => m.id === messageId);
+      setMessages((prev) => ({
+        ...prev,
+        [conversationId]: (prev[conversationId] ?? []).map((m) =>
+          m.id === messageId ? { ...m, status: "sending" as const } : m,
+        ),
+      }));
+      const payload: PendingSend = pending ?? {
+        conversationId,
+        text: fallback?.text ?? "",
+        attachments: fallback?.attachments,
+        replyTo: fallback?.replyTo,
+      };
+      performSend(messageId, payload);
     },
-    [updateMessage],
+    [performSend],
   );
 
-  const togglePinConversation = useCallback((conversationId: string) => {
-    setConversations((prev) =>
-      prev.map((c) => (c.id === conversationId ? { ...c, pinned: !c.pinned } : c)),
-    );
+  const upsertMessageFromApi = useCallback((conversationId: string, raw: any) => {
+    const message = mapMessage(raw);
+    setMessages((prev) => ({ ...prev, [conversationId]: upsert(prev[conversationId] ?? [], message) }));
   }, []);
 
-  const toggleMuteConversation = useCallback((conversationId: string) => {
-    setConversations((prev) =>
-      prev.map((c) => (c.id === conversationId ? { ...c, muted: !c.muted } : c)),
-    );
-  }, []);
+  const toggleReaction = useCallback(
+    async (conversationId: string, messageId: string, emoji: string) => {
+      try {
+        const raw = await api.post<any>(`/api/messages/${messageId}/react/`, { emoji });
+        upsertMessageFromApi(conversationId, raw);
+      } catch {
+        showToast("Something went wrong", "error");
+      }
+    },
+    [upsertMessageFromApi, showToast],
+  );
+
+  const deleteMessage = useCallback(
+    async (conversationId: string, messageId: string) => {
+      try {
+        const raw = await api.delete<any>(`/api/messages/${messageId}/`);
+        upsertMessageFromApi(conversationId, raw);
+      } catch {
+        showToast("Couldn't delete this message", "error");
+      }
+    },
+    [upsertMessageFromApi, showToast],
+  );
+
+  const editMessage = useCallback(
+    async (conversationId: string, messageId: string, text: string) => {
+      try {
+        const raw = await api.patch<any>(`/api/messages/${messageId}/`, { text });
+        upsertMessageFromApi(conversationId, raw);
+      } catch {
+        showToast("Couldn't save your changes", "error");
+      }
+    },
+    [upsertMessageFromApi, showToast],
+  );
+
+  const togglePinMessage = useCallback(
+    async (conversationId: string, messageId: string) => {
+      try {
+        const raw = await api.post<any>(`/api/messages/${messageId}/pin/`);
+        upsertMessageFromApi(conversationId, raw);
+      } catch {
+        showToast("Something went wrong", "error");
+      }
+    },
+    [upsertMessageFromApi, showToast],
+  );
+
+  const togglePinConversation = useCallback(
+    async (conversationId: string) => {
+      try {
+        const raw = await api.post<any>(`/api/conversations/${conversationId}/pin/`);
+        const conversation = mapConversation(raw);
+        setConversations((prev) => prev.map((c) => (c.id === conversationId ? conversation : c)));
+      } catch {
+        showToast("Something went wrong", "error");
+      }
+    },
+    [showToast],
+  );
+
+  const toggleMuteConversation = useCallback(
+    async (conversationId: string) => {
+      try {
+        const raw = await api.post<any>(`/api/conversations/${conversationId}/mute/`);
+        const conversation = mapConversation(raw);
+        setConversations((prev) => prev.map((c) => (c.id === conversationId ? conversation : c)));
+      } catch {
+        showToast("Something went wrong", "error");
+      }
+    },
+    [showToast],
+  );
 
   const deleteConversation = useCallback(
-    (conversationId: string) => {
-      setConversations((prev) => prev.filter((c) => c.id !== conversationId));
-      setMessages((prev) => {
-        const next = { ...prev };
-        delete next[conversationId];
-        return next;
-      });
-      if (activeIdRef.current === conversationId) {
-        setActiveConversationIdState(null);
+    async (conversationId: string) => {
+      try {
+        await api.delete(`/api/conversations/${conversationId}/`);
+        setConversations((prev) => prev.filter((c) => c.id !== conversationId));
+        setMessages((prev) => {
+          const next = { ...prev };
+          delete next[conversationId];
+          return next;
+        });
+      } catch {
+        showToast("Couldn't delete this conversation", "error");
       }
+    },
+    [showToast],
+  );
+
+  const startDirectConversation = useCallback(async (userId: string) => {
+    const raw = await api.post<any>("/api/conversations/", { type: "direct", user_id: userId });
+    const conversation = mapConversation(raw);
+    setConversations((prev) => (prev.some((c) => c.id === conversation.id) ? prev : [conversation, ...prev]));
+    seedLastMessage(conversation.id, raw.last_message);
+    return conversation.id;
+  }, [seedLastMessage]);
+
+  const createGroupConversation = useCallback(
+    async (name: string, participantIds: string[], avatarColor?: string) => {
+      const raw = await api.post<any>("/api/conversations/", {
+        type: "group",
+        name,
+        participant_ids: participantIds,
+        avatar_color: avatarColor,
+      });
+      const conversation = mapConversation(raw);
+      setConversations((prev) => [conversation, ...prev]);
+      loadedConversationsRef.current.add(conversation.id);
+      setMessages((prev) => ({ ...prev, [conversation.id]: [] }));
+      return conversation.id;
     },
     [],
   );
 
-  const startDirectConversation = useCallback(
-    (userId: string) => {
-      const existing = conversations.find(
-        (c) => c.type === "direct" && c.participantIds.includes(userId) && c.participantIds.includes(currentUser.id),
-      );
-      if (existing) return existing.id;
-
-      const id = crypto.randomUUID();
-      const conversation: Conversation = {
-        id,
-        type: "direct",
-        participantIds: [currentUser.id, userId],
-        unreadCount: 0,
-        createdAt: new Date().toISOString(),
-      };
-      setConversations((prev) => [conversation, ...prev]);
-      setMessages((prev) => ({ ...prev, [id]: [] }));
-      return id;
+  const updateCurrentUser = useCallback(
+    async (updates: Partial<User> & { avatarFile?: File }) => {
+      const { avatarFile, name, username, bio } = updates;
+      let raw: any;
+      if (avatarFile) {
+        const form = new FormData();
+        if (name !== undefined) form.append("full_name", name);
+        if (username !== undefined) form.append("username", username);
+        if (bio !== undefined) form.append("bio", bio);
+        form.append("avatar", avatarFile);
+        raw = await api.patch<any>("/api/users/me/", form);
+      } else {
+        const body: Record<string, unknown> = {};
+        if (name !== undefined) body.full_name = name;
+        if (username !== undefined) body.username = username;
+        if (bio !== undefined) body.bio = bio;
+        raw = await api.patch<any>("/api/users/me/", body);
+      }
+      setCurrentUser(mapUser(raw));
     },
-    [conversations, currentUser.id],
+    [setCurrentUser],
   );
 
-  const createGroupConversation = useCallback(
-    (name: string, participantIds: string[], avatarColor?: string) => {
-      const id = crypto.randomUUID();
-      const conversation: Conversation = {
-        id,
-        type: "group",
-        name,
-        avatarColor,
-        participantIds: [currentUser.id, ...participantIds],
-        unreadCount: 0,
-        createdAt: new Date().toISOString(),
-      };
-      setConversations((prev) => [conversation, ...prev]);
-      setMessages((prev) => ({ ...prev, [id]: [] }));
-      return id;
+  const updateSettings = useCallback(
+    async (updates: Partial<User>) => {
+      const body: Record<string, unknown> = {};
+      if (updates.notifyMessages !== undefined) body.notify_messages = updates.notifyMessages;
+      if (updates.notifySounds !== undefined) body.notify_sounds = updates.notifySounds;
+      if (updates.notifyMentions !== undefined) body.notify_mentions = updates.notifyMentions;
+      if (updates.notifyDesktop !== undefined) body.notify_desktop = updates.notifyDesktop;
+      if (updates.showOnlineStatus !== undefined) body.show_online_status = updates.showOnlineStatus;
+      if (updates.lastSeenVisibility !== undefined) body.last_seen_visibility = updates.lastSeenVisibility;
+      if (updates.profilePhotoVisibility !== undefined) body.profile_photo_visibility = updates.profilePhotoVisibility;
+      const raw = await api.patch<any>("/api/users/me/settings/", body);
+      setCurrentUser(mapUser(raw));
     },
-    [currentUser.id],
+    [setCurrentUser],
   );
 
   const value = useMemo<ChatContextValue>(
     () => ({
       users,
-      currentUser,
+      currentUser: currentUser!,
       conversations,
       messages,
       activeConversationId,
       typingUsers,
+      isLoading,
       setActiveConversationId,
       sendMessage,
       replyDraft,
       setReplyDraft,
+      sendTyping,
       toggleReaction,
       deleteMessage,
       editMessage,
@@ -312,6 +503,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       startDirectConversation,
       createGroupConversation,
       updateCurrentUser,
+      updateSettings,
     }),
     [
       users,
@@ -320,9 +512,11 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       messages,
       activeConversationId,
       typingUsers,
+      isLoading,
       setActiveConversationId,
       sendMessage,
       replyDraft,
+      sendTyping,
       toggleReaction,
       deleteMessage,
       editMessage,
@@ -335,6 +529,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       startDirectConversation,
       createGroupConversation,
       updateCurrentUser,
+      updateSettings,
     ],
   );
 

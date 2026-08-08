@@ -19,7 +19,7 @@ export function UserListItem({ user, onClick, rightElement, selected }: UserList
         selected ? "bg-accent-soft" : "hover:bg-surface-hover",
       )}
     >
-      <Avatar name={user.name} status={user.status} showStatus size="md" />
+      <Avatar name={user.name} status={user.status} showStatus size="md" imageUrl={user.avatarUrl} />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium text-ink">{user.name}</p>
         <p className="truncate text-xs text-ink-muted">

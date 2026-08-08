@@ -58,7 +58,13 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
           align="left"
           trigger={
             <button className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left transition-colors hover:bg-surface-hover">
-              <Avatar name={currentUser.name} status={currentUser.status} showStatus size="sm" />
+              <Avatar
+                name={currentUser.name}
+                status={currentUser.status}
+                showStatus
+                size="sm"
+                imageUrl={currentUser.avatarUrl}
+              />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-ink">{currentUser.name}</p>
                 <p className="truncate text-xs text-ink-muted">@{currentUser.username}</p>

@@ -10,7 +10,7 @@ import { ConversationListSkeleton } from "../ui/Skeleton";
 import { getConversationName } from "../../utils/conversationHelpers";
 
 export function ConversationList({ onOpenMenu }: { onOpenMenu: () => void }) {
-  const { conversations, messages, users, currentUser, typingUsers } = useChat();
+  const { conversations, messages, users, currentUser, typingUsers, isLoading } = useChat();
   const navigate = useNavigate();
   const { id: activeId } = useParams();
   const [query, setQuery] = useState("");
@@ -23,8 +23,6 @@ export function ConversationList({ onOpenMenu }: { onOpenMenu: () => void }) {
 
   const pinned = filtered.filter((c) => c.pinned);
   const rest = filtered.filter((c) => !c.pinned);
-
-  const isLoading = false;
 
   return (
     <div className="flex h-full w-full flex-col bg-panel lg:w-80 lg:border-r lg:border-border">

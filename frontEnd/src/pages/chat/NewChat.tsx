@@ -20,8 +20,8 @@ export default function NewChat() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
 
-  function handleSelect(userId: string) {
-    const id = startDirectConversation(userId);
+  async function handleSelect(userId: string) {
+    const id = await startDirectConversation(userId);
     navigate(`/chat/${id}`);
   }
 

@@ -10,6 +10,7 @@ import { SettingsLayout } from "./layouts/SettingsLayout";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 import ChatIndex from "./pages/chat/ChatIndex";
 import ChatWindow from "./pages/chat/ChatWindow";
 import NewChat from "./pages/chat/NewChat";
@@ -34,6 +35,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />
           </Route>
 
           <Route element={<ProtectedRoute />}>

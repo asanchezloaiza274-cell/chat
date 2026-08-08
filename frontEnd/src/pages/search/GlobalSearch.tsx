@@ -1,40 +1,68 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, MessageSquare, User as UserIcon, MessagesSquare, SearchX } from "lucide-react";
 import { PageLayout } from "../../layouts/PageLayout";
 import { Avatar } from "../../components/ui/Avatar";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { useChat } from "../../context/ChatContext";
+import { api } from "../../lib/api";
+import { mapConversation, mapMessage, mapUser } from "../../lib/mappers";
 import { getConversationName } from "../../utils/conversationHelpers";
 import { formatListTimestamp } from "../../utils/format";
+import type { Conversation, Message, User } from "../../types";
+
+interface SearchResults {
+  conversations: Conversation[];
+  people: User[];
+  messages: Message[];
+}
+
+const EMPTY_RESULTS: SearchResults = { conversations: [], people: [], messages: [] };
 
 export default function GlobalSearch() {
   const navigate = useNavigate();
-  const { conversations, users, messages, currentUser, startDirectConversation } = useChat();
+  const { conversations, users, currentUser, startDirectConversation } = useChat();
   const [query, setQuery] = useState("");
-  const q = query.trim().toLowerCase();
+  const [results, setResults] = useState<SearchResults>(EMPTY_RESULTS);
+  const [isSearching, setIsSearching] = useState(false);
+  const q = query.trim();
 
-  const matchedConversations = useMemo(() => {
-    if (!q) return [];
-    return conversations.filter((c) => getConversationName(c, users, currentUser.id).toLowerCase().includes(q));
-  }, [q, conversations, users, currentUser.id]);
+  useEffect(() => {
+    if (!q) {
+      setResults(EMPTY_RESULTS);
+      return;
+    }
+    let cancelled = false;
+    setIsSearching(true);
+    const timeout = setTimeout(async () => {
+      try {
+        const raw = await api.get<{ conversations: any[]; people: any[]; messages: any[] }>(
+          `/api/search/?q=${encodeURIComponent(q)}`,
+        );
+        if (cancelled) return;
+        setResults({
+          conversations: raw.conversations.map(mapConversation),
+          people: raw.people.map(mapUser),
+          messages: raw.messages.map(mapMessage),
+        });
+      } catch {
+        if (!cancelled) setResults(EMPTY_RESULTS);
+      } finally {
+        if (!cancelled) setIsSearching(false);
+      }
+    }, 300);
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+    };
+  }, [q]);
 
-  const matchedPeople = useMemo(() => {
-    if (!q) return [];
-    return users.filter(
-      (u) => u.id !== currentUser.id && (u.name.toLowerCase().includes(q) || u.username.toLowerCase().includes(q)),
-    );
-  }, [q, users, currentUser.id]);
+  async function handleSelectPerson(userId: string) {
+    const id = await startDirectConversation(userId);
+    navigate(`/chat/${id}`);
+  }
 
-  const matchedMessages = useMemo(() => {
-    if (!q) return [];
-    return Object.values(messages)
-      .flat()
-      .filter((m) => m.text?.toLowerCase().includes(q))
-      .slice(0, 20);
-  }, [q, messages]);
-
-  const hasResults = matchedConversations.length > 0 || matchedPeople.length > 0 || matchedMessages.length > 0;
+  const hasResults = results.conversations.length > 0 || results.people.length > 0 || results.messages.length > 0;
 
   return (
     <PageLayout title="Search" backTo="/chat">
@@ -58,15 +86,15 @@ export default function GlobalSearch() {
           />
         )}
 
-        {q && !hasResults && (
+        {q && !isSearching && !hasResults && (
           <EmptyState icon={<SearchX size={20} />} title="Nothing found" description="Try a different search term." />
         )}
 
-        {q && matchedConversations.length > 0 && (
+        {q && results.conversations.length > 0 && (
           <section className="mb-6">
             <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">Conversations</h2>
             <div className="flex flex-col gap-0.5">
-              {matchedConversations.map((c) => (
+              {results.conversations.map((c) => (
                 <button
                   key={c.id}
                   onClick={() => navigate(`/chat/${c.id}`)}
@@ -90,17 +118,17 @@ export default function GlobalSearch() {
           </section>
         )}
 
-        {q && matchedPeople.length > 0 && (
+        {q && results.people.length > 0 && (
           <section className="mb-6">
             <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">People</h2>
             <div className="flex flex-col gap-0.5">
-              {matchedPeople.map((u) => (
+              {results.people.map((u) => (
                 <button
                   key={u.id}
-                  onClick={() => navigate(`/chat/${startDirectConversation(u.id)}`)}
+                  onClick={() => handleSelectPerson(u.id)}
                   className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-left hover:bg-surface-hover"
                 >
-                  <Avatar name={u.name} status={u.status} showStatus size="sm" />
+                  <Avatar name={u.name} status={u.status} showStatus size="sm" imageUrl={u.avatarUrl} />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-ink">{u.name}</p>
                     <p className="text-xs text-ink-muted">@{u.username}</p>
@@ -112,11 +140,11 @@ export default function GlobalSearch() {
           </section>
         )}
 
-        {q && matchedMessages.length > 0 && (
+        {q && results.messages.length > 0 && (
           <section>
             <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">Messages</h2>
             <div className="flex flex-col gap-0.5">
-              {matchedMessages.map((m) => {
+              {results.messages.map((m) => {
                 const conversation = conversations.find((c) => c.id === m.conversationId);
                 const sender = users.find((u) => u.id === m.senderId);
                 if (!conversation) return null;

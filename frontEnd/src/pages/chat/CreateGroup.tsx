@@ -36,8 +36,8 @@ export default function CreateGroup() {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((u) => u !== id) : [...prev, id]));
   }
 
-  function handleCreate() {
-    const id = createGroupConversation(name.trim(), selectedIds, color);
+  async function handleCreate() {
+    const id = await createGroupConversation(name.trim(), selectedIds, color);
     navigate(`/chat/${id}`);
   }
 

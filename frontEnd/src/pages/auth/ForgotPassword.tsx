@@ -4,6 +4,7 @@ import { Mail, AlertCircle, MailCheck, ArrowLeft } from "lucide-react";
 import { AuthLayout } from "../../layouts/AuthLayout";
 import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
+import { api } from "../../lib/api";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -19,9 +20,14 @@ export default function ForgotPassword() {
       return;
     }
     setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 900));
-    setIsLoading(false);
-    setSubmitted(true);
+    try {
+      await api.post("/api/auth/password-reset/", { email }, { auth: false });
+      setSubmitted(true);
+    } catch {
+      setError("Something went wrong, please try again");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   if (submitted) {

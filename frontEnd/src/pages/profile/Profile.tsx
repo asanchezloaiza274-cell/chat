@@ -14,7 +14,13 @@ export default function Profile() {
     <PageLayout title="Profile" backTo="/chat">
       <div className="mx-auto max-w-lg px-6 py-8">
         <div className="flex flex-col items-center rounded-xl border border-border bg-panel px-6 py-8 text-center">
-          <Avatar name={currentUser.name} size="xl" status={currentUser.status} showStatus />
+          <Avatar
+            name={currentUser.name}
+            size="xl"
+            status={currentUser.status}
+            showStatus
+            imageUrl={currentUser.avatarUrl}
+          />
           <h2 className="mt-4 text-lg font-semibold text-ink">{currentUser.name}</h2>
           <p className="text-sm text-ink-muted">@{currentUser.username}</p>
           {currentUser.bio && <p className="mt-3 max-w-sm text-sm text-ink">{currentUser.bio}</p>}
