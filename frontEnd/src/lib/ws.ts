@@ -17,11 +17,26 @@ class ChatSocket {
   }
 
   private open() {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+
     const token = this.getToken?.();
     if (!token) return;
-    this.socket = new WebSocket(`${WS_URL}/ws/chat/?token=${encodeURIComponent(token)}`);
 
-    this.socket.onmessage = (event) => {
+    // Close out any previous socket before replacing it so it can't leak or
+    // trigger a stale reconnect once this new one is in place.
+    if (this.socket) {
+      const stale = this.socket;
+      stale.onclose = null;
+      stale.close();
+    }
+
+    const socket = new WebSocket(`${WS_URL}/ws/chat/?token=${encodeURIComponent(token)}`);
+    this.socket = socket;
+
+    socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data) as WsMessage;
         this.handlers.forEach((handler) => handler(data));
@@ -30,7 +45,9 @@ class ChatSocket {
       }
     };
 
-    this.socket.onclose = () => {
+    socket.onclose = () => {
+      // Ignore close events from a socket that's already been superseded.
+      if (this.socket !== socket) return;
       this.socket = null;
       if (this.shouldReconnect) {
         this.reconnectTimer = setTimeout(() => this.open(), 2000);
@@ -54,9 +71,15 @@ class ChatSocket {
   disconnect() {
     this.shouldReconnect = false;
     this.getToken = null;
-    if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
-    this.socket?.close();
-    this.socket = null;
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+    if (this.socket) {
+      this.socket.onclose = null;
+      this.socket.close();
+      this.socket = null;
+    }
   }
 }
 

@@ -56,6 +56,7 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
       <div className="border-t border-border p-3">
         <Dropdown
           align="left"
+          placement="top"
           trigger={
             <button className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left transition-colors hover:bg-surface-hover">
               <Avatar

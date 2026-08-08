@@ -15,7 +15,8 @@ import type { ImageAttachment } from "../../types";
 export default function ChatWindow() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { conversations, messages, users, currentUser, typingUsers, togglePinMessage } = useChat();
+  const { conversations, messages, users, currentUser, typingUsers, togglePinMessage, setActiveConversationId } =
+    useChat();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeMatchIndex, setActiveMatchIndex] = useState(0);
@@ -34,6 +35,11 @@ export default function ChatWindow() {
   useEffect(() => {
     if (!conversation) navigate("/chat", { replace: true });
   }, [conversation, navigate]);
+
+  useEffect(() => {
+    if (id) setActiveConversationId(id);
+    return () => setActiveConversationId(null);
+  }, [id, setActiveConversationId]);
 
   if (!conversation) {
     return null;

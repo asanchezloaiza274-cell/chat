@@ -14,10 +14,11 @@ interface DropdownProps {
   trigger: ReactNode;
   items: (DropdownItem | "separator")[];
   align?: "left" | "right";
+  placement?: "top" | "bottom";
   className?: string;
 }
 
-export function Dropdown({ trigger, items, align = "right", className }: DropdownProps) {
+export function Dropdown({ trigger, items, align = "right", placement = "bottom", className }: DropdownProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -30,7 +31,8 @@ export function Dropdown({ trigger, items, align = "right", className }: Dropdow
         <div
           role="menu"
           className={cn(
-            "animate-scale-in absolute top-full z-40 mt-1.5 min-w-[180px] origin-top rounded-lg border border-border bg-surface p-1 shadow-xl shadow-black/40",
+            "animate-scale-in absolute z-40 min-w-[180px] rounded-lg border border-border bg-surface p-1 shadow-xl shadow-black/40",
+            placement === "bottom" ? "top-full mt-1.5 origin-top" : "bottom-full mb-1.5 origin-bottom",
             align === "right" ? "right-0" : "left-0",
           )}
         >

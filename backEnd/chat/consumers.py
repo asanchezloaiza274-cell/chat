@@ -53,6 +53,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
     conversation_created = _forward
     conversation_updated = _forward
     conversation_deleted = _forward
+    conversation_read = _forward
     typing = _forward
     presence = _forward
 

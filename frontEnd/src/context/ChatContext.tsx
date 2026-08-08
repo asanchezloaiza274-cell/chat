@@ -8,9 +8,11 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useNavigate } from "react-router-dom";
 import { api, getAccessToken } from "../lib/api";
 import { chatSocket, type WsMessage } from "../lib/ws";
 import { mapConversation, mapMessage, mapUser } from "../lib/mappers";
+import { showDesktopNotification } from "../utils/notifications";
 import { useAuth } from "./AuthContext";
 import { useToast } from "./ToastContext";
 import type { Attachment, Conversation, Message, ReplyRef, User } from "../types";
@@ -63,6 +65,7 @@ function upsert(list: Message[], message: Message): Message[] {
 export function ChatProvider({ children }: { children: ReactNode }) {
   const { currentUser, setCurrentUser } = useAuth();
   const { showToast } = useToast();
+  const navigate = useNavigate();
 
   const [otherUsers, setOtherUsers] = useState<User[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -74,16 +77,30 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   const activeConversationIdRef = useRef(activeConversationId);
   const currentUserIdRef = useRef(currentUser!.id);
+  const currentUserRef = useRef(currentUser!);
+  const otherUsersRef = useRef(otherUsers);
+  const conversationsRef = useRef(conversations);
   const messagesRef = useRef(messages);
+  const navigateRef = useRef(navigate);
   const loadedConversationsRef = useRef<Set<string>>(new Set());
   const pendingSendsRef = useRef<Record<string, PendingSend>>({});
 
+  useEffect(() => {
+    navigateRef.current = navigate;
+  }, [navigate]);
   useEffect(() => {
     activeConversationIdRef.current = activeConversationId;
   }, [activeConversationId]);
   useEffect(() => {
     currentUserIdRef.current = currentUser!.id;
+    currentUserRef.current = currentUser!;
   }, [currentUser]);
+  useEffect(() => {
+    otherUsersRef.current = otherUsers;
+  }, [otherUsers]);
+  useEffect(() => {
+    conversationsRef.current = conversations;
+  }, [conversations]);
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);
@@ -130,14 +147,28 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           const conversationId = msg.conversation_id as string;
           const message = mapMessage(msg.message);
           setMessages((prev) => ({ ...prev, [conversationId]: upsert(prev[conversationId] ?? [], message) }));
-          if (
-            msg.type === "message.created" &&
-            message.senderId !== currentUserIdRef.current &&
-            conversationId !== activeConversationIdRef.current
-          ) {
-            setConversations((prev) =>
-              prev.map((c) => (c.id === conversationId ? { ...c, unreadCount: c.unreadCount + 1 } : c)),
-            );
+
+          if (msg.type === "message.created" && message.senderId !== currentUserIdRef.current) {
+            const isActiveConversation = conversationId === activeConversationIdRef.current;
+            if (!isActiveConversation) {
+              setConversations((prev) =>
+                prev.map((c) => (c.id === conversationId ? { ...c, unreadCount: c.unreadCount + 1 } : c)),
+              );
+            }
+
+            const isBeingViewed = isActiveConversation && document.hasFocus();
+            const conversation = conversationsRef.current.find((c) => c.id === conversationId);
+            if (currentUserRef.current.notifyDesktop && !isBeingViewed && !conversation?.muted) {
+              const sender = otherUsersRef.current.find((u) => u.id === message.senderId);
+              const body = message.deleted
+                ? "This message was deleted"
+                : message.text ?? (message.attachments?.length ? "Sent an attachment" : "Sent a message");
+              showDesktopNotification(sender?.name ?? "New message", {
+                body,
+                tag: conversationId,
+                onClick: () => navigateRef.current(`/chat/${conversationId}`),
+              });
+            }
           }
           break;
         }
