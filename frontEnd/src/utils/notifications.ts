@@ -11,13 +11,25 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
 interface DesktopNotificationOptions {
   body: string;
   tag?: string;
+  icon?: string;
+  silent?: boolean;
   onClick?: () => void;
 }
 
-export function showDesktopNotification(title: string, { body, tag, onClick }: DesktopNotificationOptions) {
+export function showDesktopNotification(
+  title: string,
+  { body, tag, icon, silent, onClick }: DesktopNotificationOptions,
+) {
   if (!isNotificationSupported() || Notification.permission !== "granted") return;
 
-  const notification = new Notification(title, { body, tag, icon: "/favicon.svg" });
+  const notification = new Notification(title, {
+    body,
+    tag,
+    icon: icon || "/favicon.svg",
+    badge: "/favicon.svg",
+    silent,
+    renotify: !!tag,
+  });
   if (onClick) {
     notification.onclick = () => {
       window.focus();

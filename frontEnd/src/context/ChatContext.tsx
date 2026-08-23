@@ -13,6 +13,7 @@ import { api, getAccessToken } from "../lib/api";
 import { chatSocket, type WsMessage } from "../lib/ws";
 import { mapConversation, mapMessage, mapUser } from "../lib/mappers";
 import { showDesktopNotification } from "../utils/notifications";
+import { avatarDataUrl } from "../utils/avatarColor";
 import { useAuth } from "./AuthContext";
 import { useToast } from "./ToastContext";
 import type { Attachment, Conversation, Message, ReplyRef, User } from "../types";
@@ -156,16 +157,19 @@ export function ChatProvider({ children }: { children: ReactNode }) {
               );
             }
 
-            const isBeingViewed = isActiveConversation && document.hasFocus();
+            const isBeingViewed = isActiveConversation && document.visibilityState === "visible";
             const conversation = conversationsRef.current.find((c) => c.id === conversationId);
             if (currentUserRef.current.notifyDesktop && !isBeingViewed && !conversation?.muted) {
               const sender = otherUsersRef.current.find((u) => u.id === message.senderId);
               const body = message.deleted
                 ? "This message was deleted"
                 : message.text ?? (message.attachments?.length ? "Sent an attachment" : "Sent a message");
-              showDesktopNotification(sender?.name ?? "New message", {
+              const senderName = sender?.name ?? "New message";
+              showDesktopNotification(senderName, {
                 body,
                 tag: conversationId,
+                icon: sender?.avatarUrl || avatarDataUrl(senderName),
+                silent: currentUserRef.current.notifySounds === false,
                 onClick: () => navigateRef.current(`/chat/${conversationId}`),
               });
             }

@@ -4,6 +4,7 @@ import { Switch } from "../../components/ui/Switch";
 import { useChat } from "../../context/ChatContext";
 import { useToast } from "../../context/ToastContext";
 import { isNotificationSupported, requestNotificationPermission } from "../../utils/notifications";
+import { avatarDataUrl } from "../../utils/avatarColor";
 import type { User } from "../../types";
 
 export default function NotificationsSettings() {
@@ -38,7 +39,7 @@ export default function NotificationsSettings() {
     await handleChange("notifyDesktop", true);
     new Notification("Desktop notifications enabled", {
       body: "You'll be notified here when new messages arrive.",
-      icon: "/favicon.svg",
+      icon: currentUser.avatarUrl || avatarDataUrl(currentUser.name),
     });
   }
 
