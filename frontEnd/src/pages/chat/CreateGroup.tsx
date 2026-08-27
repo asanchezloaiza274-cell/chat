@@ -69,7 +69,7 @@ export default function CreateGroup() {
           <div key={label} className="flex flex-1 items-center gap-1.5">
             <div
               className={cn(
-                "h-1 flex-1 rounded-full",
+                "h-1 flex-1",
                 i <= step ? "bg-accent" : "bg-surface-active",
               )}
             />
@@ -102,7 +102,7 @@ export default function CreateGroup() {
                 onClick={() => setColor(c)}
                 aria-label={`Choose color ${c}`}
                 className={cn(
-                  "h-9 w-9 rounded-full ring-offset-2 ring-offset-panel transition-shadow",
+                  "h-9 w-9 ring-offset-2 ring-offset-panel transition-shadow",
                   color === c && "ring-2 ring-accent",
                 )}
                 style={{ backgroundColor: c }}
@@ -133,7 +133,7 @@ export default function CreateGroup() {
                 onClick={() => toggleUser(user.id)}
                 rightElement={
                   selectedIds.includes(user.id) ? (
-                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent text-white">
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center bg-accent text-white">
                       <Check size={12} />
                     </span>
                   ) : undefined
@@ -156,7 +156,7 @@ export default function CreateGroup() {
             {[currentUser.id, ...selectedIds].map((id) => {
               const u = users.find((user) => user.id === id)!;
               return (
-                <div key={id} className="flex items-center gap-2.5 rounded-lg px-2 py-1.5">
+                <div key={id} className="flex items-center gap-2.5 px-2 py-1.5">
                   <Avatar name={u.name} size="sm" />
                   <span className="text-sm text-ink">
                     {u.name} {id === currentUser.id && <span className="text-ink-faint">(you)</span>}

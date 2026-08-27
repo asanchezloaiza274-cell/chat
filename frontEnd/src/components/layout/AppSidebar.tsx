@@ -40,8 +40,10 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
             onClick={onNavigate}
             className={({ isActive }) =>
               cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                isActive ? "bg-accent-soft text-accent" : "text-ink-muted hover:bg-surface-hover hover:text-ink",
+                "flex items-center gap-3 border-l-2 px-3 py-2 text-sm font-medium transition-colors",
+                isActive
+                  ? "border-accent bg-accent-soft text-accent"
+                  : "border-transparent text-ink-muted hover:bg-surface-hover hover:text-ink",
               )
             }
           >
@@ -58,7 +60,7 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
           align="left"
           placement="top"
           trigger={
-            <button className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left transition-colors hover:bg-surface-hover">
+            <button className="flex w-full items-center gap-2.5 px-2 py-2 text-left transition-colors hover:bg-surface-hover">
               <Avatar
                 name={currentUser.name}
                 status={currentUser.status}

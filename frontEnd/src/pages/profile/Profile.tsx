@@ -13,7 +13,7 @@ export default function Profile() {
   return (
     <PageLayout title="Profile" backTo="/chat">
       <div className="mx-auto max-w-lg px-6 py-8">
-        <div className="flex flex-col items-center rounded-xl border border-border bg-panel px-6 py-8 text-center">
+        <div className="flex flex-col items-center border border-border bg-panel px-6 py-8 text-center">
           <Avatar
             name={currentUser.name}
             size="xl"
@@ -36,15 +36,15 @@ export default function Profile() {
           </Button>
         </div>
 
-        <div className="mt-6 flex flex-col gap-1 rounded-xl border border-border bg-panel p-2">
-          <div className="flex items-center gap-3 rounded-lg px-3 py-3">
+        <div className="mt-6 flex flex-col gap-1 border border-border bg-panel p-2">
+          <div className="flex items-center gap-3 px-3 py-3">
             <Mail size={16} className="shrink-0 text-ink-faint" />
             <div className="min-w-0">
               <p className="text-xs text-ink-faint">Email</p>
               <p className="truncate text-sm text-ink">{currentUser.email}</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 rounded-lg px-3 py-3">
+          <div className="flex items-center gap-3 px-3 py-3">
             <Calendar size={16} className="shrink-0 text-ink-faint" />
             <div className="min-w-0">
               <p className="text-xs text-ink-faint">Joined</p>

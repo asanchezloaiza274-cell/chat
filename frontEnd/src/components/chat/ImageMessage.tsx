@@ -11,7 +11,7 @@ function ImageTile({ image, onOpen }: { image: ImageAttachment; onOpen: () => vo
       onClick={onOpen}
       disabled={uploading || failed}
       className={cn(
-        "group relative block h-40 w-full overflow-hidden rounded-lg",
+        "group relative block h-40 w-full overflow-hidden",
         (uploading || failed) && "cursor-default",
       )}
     >

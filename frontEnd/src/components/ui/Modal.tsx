@@ -39,7 +39,7 @@ export function Modal({ open, onClose, title, children, size = "md", footer }: M
   return createPortal(
     <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
       <div
-        className="animate-fade-in absolute inset-0 bg-black/60"
+        className="animate-fade-in absolute inset-0 bg-black/70"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -48,13 +48,13 @@ export function Modal({ open, onClose, title, children, size = "md", footer }: M
         aria-modal="true"
         aria-label={title}
         className={cn(
-          "animate-scale-in relative flex max-h-[85vh] w-full flex-col rounded-xl border border-border bg-panel shadow-2xl shadow-black/50",
+          "animate-rise-in relative flex max-h-[85vh] w-full flex-col border border-border-strong bg-panel",
           SIZE_CLASSES[size],
         )}
       >
         {title && (
           <div className="flex items-center justify-between border-b border-border px-5 py-4">
-            <h2 className="text-base font-semibold text-ink">{title}</h2>
+            <h2 className="text-[15px] font-semibold tracking-[-0.01em] text-ink">{title}</h2>
             <IconButton label="Close" size="sm" onClick={onClose} showTooltip={false}>
               <X size={18} />
             </IconButton>

@@ -119,21 +119,21 @@ export function MessageInput({ conversationId }: { conversationId: string }) {
       {pendingItems.length > 0 && (
         <div className="flex flex-wrap gap-2 border-b border-border px-4 py-2.5">
           {pendingItems.map(({ attachment: att }) => (
-            <div key={att.id} className="flex items-center gap-1.5 rounded-lg border border-border bg-surface py-1 pl-1 pr-2 text-xs">
+            <div key={att.id} className="flex items-center gap-1.5 border border-border bg-surface py-1 pl-1 pr-2 text-xs">
               {att.type === "image" ? (
                 att.url ? (
-                  <img src={att.url} alt={att.name} className="h-7 w-7 rounded object-cover" />
+                  <img src={att.url} alt={att.name} className="h-7 w-7 object-cover" />
                 ) : (
-                  <div className="flex h-7 w-7 items-center justify-center rounded" style={{ backgroundColor: att.color }}>
+                  <div className="flex h-7 w-7 items-center justify-center" style={{ backgroundColor: att.color }}>
                     <ImageIcon size={12} className="text-white" />
                   </div>
                 )
               ) : att.type === "file" ? (
-                <div className="flex h-7 w-7 items-center justify-center rounded bg-accent-soft text-accent">
+                <div className="flex h-7 w-7 items-center justify-center bg-accent-soft text-accent">
                   <FileText size={13} />
                 </div>
               ) : (
-                <div className="flex h-7 w-7 items-center justify-center rounded bg-accent-soft text-accent">
+                <div className="flex h-7 w-7 items-center justify-center bg-accent-soft text-accent">
                   <Mic size={13} />
                 </div>
               )}

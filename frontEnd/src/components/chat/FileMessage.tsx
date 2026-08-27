@@ -9,8 +9,8 @@ export function FileMessage({ attachment }: { attachment: FileAttachment }) {
   const uploading = attachment.status === "uploading";
 
   return (
-    <div className="flex w-64 items-center gap-3 rounded-xl border border-border bg-surface px-3 py-2.5">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
+    <div className="flex w-64 items-center gap-3 border border-border bg-surface px-3 py-2.5">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-accent-soft text-accent">
         <FileText size={18} />
       </div>
       <div className="min-w-0 flex-1">
@@ -30,7 +30,7 @@ export function FileMessage({ attachment }: { attachment: FileAttachment }) {
             setTimeout(() => setDownloading(false), 1200);
           }}
           aria-label={`Download ${attachment.name}`}
-          className="shrink-0 rounded-md p-1.5 text-ink-muted hover:bg-surface-hover hover:text-ink"
+          className="shrink-0 p-1.5 text-ink-muted hover:bg-surface-hover hover:text-ink"
         >
           {downloading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
         </button>

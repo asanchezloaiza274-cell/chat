@@ -18,7 +18,7 @@ export function Badge({ children, variant = "accent", className }: BadgeProps) {
   return (
     <span
       className={cn(
-        "inline-flex min-w-[1.25rem] items-center justify-center rounded-full px-1.5 py-0.5 text-xs font-semibold leading-none",
+        "inline-flex min-w-[1.125rem] items-center justify-center px-1 py-0.5 font-mono text-[11px] font-semibold leading-none",
         VARIANT_CLASSES[variant],
         className,
       )}

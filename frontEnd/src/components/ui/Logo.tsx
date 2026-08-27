@@ -8,12 +8,12 @@ export function Logo({ size = "md", showWordmark = true }: { size?: "sm" | "md" 
 
   return (
     <div className="flex items-center gap-2.5">
-      <div
-        className={cn("flex shrink-0 items-center justify-center rounded-lg bg-accent text-accent-ink", boxSize)}
-      >
+      <div className={cn("flex shrink-0 items-center justify-center bg-accent text-accent-ink", boxSize)}>
         <MessagesSquare size={iconSize} strokeWidth={2.25} />
       </div>
-      {showWordmark && <span className={cn("font-semibold tracking-tight text-ink", textSize)}>Loop</span>}
+      {showWordmark && (
+        <span className={cn("font-semibold tracking-[-0.02em] text-ink", textSize)}>Loop</span>
+      )}
     </div>
   );
 }

@@ -24,7 +24,7 @@ export function PasswordStrengthMeter({ password }: { password: string }) {
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
-            className={cn("h-1 flex-1 rounded-full bg-surface-active", i < score && COLORS[score])}
+            className={cn("h-1 flex-1 bg-surface-active", i < score && COLORS[score])}
           />
         ))}
       </div>

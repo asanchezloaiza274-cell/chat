@@ -28,7 +28,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         ref={ref}
         aria-label={label}
         className={cn(
-          "inline-flex shrink-0 items-center justify-center rounded-lg transition-colors duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50",
+          "inline-flex shrink-0 items-center justify-center transition-colors duration-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-45",
           VARIANT_CLASSES[variant],
           SIZE_CLASSES[size],
           className,

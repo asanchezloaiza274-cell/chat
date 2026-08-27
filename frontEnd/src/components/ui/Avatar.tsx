@@ -15,7 +15,7 @@ interface AvatarProps {
 const SIZE_CLASSES: Record<NonNullable<AvatarProps["size"]>, string> = {
   xs: "h-6 w-6 text-[10px]",
   sm: "h-8 w-8 text-xs",
-  md: "h-10 w-10 text-sm",
+  md: "h-10 w-10 text-[13px]",
   lg: "h-14 w-14 text-lg",
   xl: "h-20 w-20 text-2xl",
 };
@@ -46,7 +46,7 @@ export function Avatar({ name, size = "md", status, showStatus, className, color
       ) : (
         <div
           className={cn(
-            "flex select-none items-center justify-center rounded-full font-semibold text-white",
+            "flex select-none items-center justify-center rounded-full font-medium text-white",
             SIZE_CLASSES[size],
           )}
           style={{ backgroundColor: colorOverride ?? avatarColor(name) }}

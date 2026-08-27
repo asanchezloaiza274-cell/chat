@@ -63,8 +63,8 @@ export function MessageBubble({
   if (message.deleted) {
     return (
       <div className={cn("flex items-end gap-2 px-4 py-0.5", isOwn && "flex-row-reverse")}>
-        <div className="w-8 shrink-0" />
-        <div className="flex items-center gap-1.5 rounded-2xl bg-surface/60 px-3.5 py-2 text-sm italic text-ink-faint">
+        <div className="w-7 shrink-0" />
+        <div className="flex items-center gap-1.5 border border-border px-3 py-2 text-sm italic text-ink-faint">
           <Ban size={13} />
           This message was deleted
         </div>
@@ -80,7 +80,7 @@ export function MessageBubble({
       ref={registerRef}
       className={cn("group/message flex items-end gap-2 px-4 py-0.5", isOwn && "flex-row-reverse")}
     >
-      <div className="w-8 shrink-0">
+      <div className="w-7 shrink-0">
         {showAvatar && !isOwn && <Avatar name={senderName} size="sm" imageUrl={senderAvatarUrl} />}
       </div>
 
@@ -104,7 +104,7 @@ export function MessageBubble({
         />
 
         {message.pinned && (
-          <div className="mb-0.5 flex items-center gap-1 text-[11px] font-medium text-ink-faint">
+          <div className="mb-0.5 flex items-center gap-1 font-mono text-[10px] font-medium uppercase tracking-wide text-ink-faint">
             <Pin size={10} />
             Pinned
           </div>
@@ -112,10 +112,10 @@ export function MessageBubble({
 
         <div
           className={cn(
-            "min-w-0 rounded-2xl px-3.5 py-2 text-sm leading-relaxed transition-shadow",
-            isOwn ? "rounded-br-sm bg-accent text-accent-ink" : "rounded-bl-sm bg-surface text-ink",
-            (images.length > 0 || otherAttachments.length > 0) && !message.text && "bg-transparent p-0",
-            isActiveMatch && "ring-2 ring-warning",
+            "min-w-0 border-l-2 px-3.5 py-2 text-sm leading-relaxed transition-colors",
+            isOwn ? "border-accent bg-accent text-accent-ink" : "border-transparent bg-surface text-ink",
+            (images.length > 0 || otherAttachments.length > 0) && !message.text && "border-transparent bg-transparent p-0",
+            isActiveMatch && "outline outline-1 outline-warning",
           )}
         >
           {message.replyTo && (
@@ -168,14 +168,14 @@ export function MessageBubble({
             message.text && (
               <p className="whitespace-pre-wrap break-words">
                 {searchQuery ? highlightText(message.text, searchQuery) : message.text}
-                {message.edited && <span className="ml-1.5 text-[11px] opacity-60">(edited)</span>}
+                {message.edited && <span className="ml-1.5 font-mono text-[10px] opacity-60">(edited)</span>}
               </p>
             )
           )}
 
           <div
             className={cn(
-              "mt-0.5 flex items-center gap-1 text-[11px]",
+              "mt-0.5 flex items-center gap-1 font-mono text-[10px] tabular-nums",
               isOwn ? "justify-end text-white/70" : "justify-end text-ink-faint",
             )}
           >

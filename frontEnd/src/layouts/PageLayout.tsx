@@ -17,7 +17,7 @@ export function PageLayout({ title, backTo, children }: { title: string; backTo?
           <IconButton label="Back" size="sm" onClick={() => (backTo ? navigate(backTo) : navigate(-1))}>
             <ArrowLeft size={18} />
           </IconButton>
-          <h1 className="text-base font-semibold text-ink">{title}</h1>
+          <h1 className="text-[15px] font-semibold tracking-[-0.01em] text-ink">{title}</h1>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
       </div>

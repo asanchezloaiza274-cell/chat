@@ -34,7 +34,7 @@ export default function ForgotPassword() {
     return (
       <AuthLayout title="Check your email">
         <div className="flex flex-col items-center text-center">
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-success-soft text-success">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center border border-success/30 bg-success-soft text-success">
             <MailCheck size={22} />
           </div>
           <p className="text-sm text-ink-muted">
@@ -57,7 +57,7 @@ export default function ForgotPassword() {
     <AuthLayout title="Forgot password?" subtitle="Enter your email and we'll send you a reset link">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
         {error && (
-          <div className="flex items-center gap-2 rounded-lg border border-danger/30 bg-danger-soft px-3 py-2.5 text-sm text-danger">
+          <div className="flex items-center gap-2 border-l-2 border-danger bg-danger-soft px-3 py-2.5 text-sm text-danger">
             <AlertCircle size={16} className="shrink-0" />
             {error}
           </div>

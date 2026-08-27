@@ -37,7 +37,7 @@ export default function AppearanceSettings() {
               key={value}
               onClick={() => handleThemeChange(value)}
               className={cn(
-                "flex flex-col items-center gap-2 rounded-lg border px-3 py-4 transition-colors",
+                "flex flex-col items-center gap-2 border px-3 py-4 transition-colors",
                 theme === value ? "border-accent bg-accent-soft text-accent" : "border-border text-ink-muted hover:bg-surface-hover",
               )}
             >
@@ -60,13 +60,13 @@ export default function AppearanceSettings() {
           />
         </SettingsRow>
 
-        <div className="rounded-lg border border-border bg-surface p-3">
-          <p className="mb-2 text-xs font-medium text-ink-faint">Preview</p>
+        <div className="border border-border bg-surface p-3">
+          <p className="mb-2 font-mono text-[10px] font-medium uppercase tracking-wider text-ink-faint">Preview</p>
           <div className={cn("flex flex-col", density === "compact" ? "gap-1" : "gap-3")}>
-            <div className="max-w-[70%] self-start rounded-2xl rounded-bl-sm bg-panel px-3 py-2 text-sm text-ink">
+            <div className="max-w-[70%] self-start border-l-2 border-transparent bg-panel px-3 py-2 text-sm text-ink">
               Hey! Are we still on for later?
             </div>
-            <div className="max-w-[70%] self-end rounded-2xl rounded-br-sm bg-accent px-3 py-2 text-sm text-accent-ink">
+            <div className="max-w-[70%] self-end border-l-2 border-accent bg-accent px-3 py-2 text-sm text-accent-ink">
               Yes, absolutely!
             </div>
           </div>

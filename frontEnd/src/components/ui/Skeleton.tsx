@@ -1,13 +1,13 @@
 import { cn } from "../../utils/cn";
 
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse rounded-md bg-surface-active", className)} />;
+  return <div className={cn("animate-pulse bg-surface-active", className)} />;
 }
 
 export function ConversationItemSkeleton() {
   return (
     <div className="flex items-center gap-3 px-3 py-3">
-      <Skeleton className="h-11 w-11 shrink-0 rounded-full" />
+      <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
       <div className="flex-1 space-y-2">
         <div className="flex items-center justify-between">
           <Skeleton className="h-3.5 w-28" />
@@ -31,9 +31,9 @@ export function ConversationListSkeleton() {
 
 export function MessageSkeleton({ align = "left" }: { align?: "left" | "right" }) {
   return (
-    <div className={cn("flex items-end gap-2", align === "right" && "flex-row-reverse")}>
-      {align === "left" && <Skeleton className="h-8 w-8 shrink-0 rounded-full" />}
-      <Skeleton className={cn("h-10 rounded-2xl", align === "right" ? "w-40" : "w-56")} />
+    <div className={cn("flex items-end gap-2 px-4", align === "right" && "flex-row-reverse")}>
+      {align === "left" && <Skeleton className="h-7 w-7 shrink-0 rounded-full" />}
+      <Skeleton className={cn("h-9", align === "right" ? "w-40" : "w-56")} />
     </div>
   );
 }

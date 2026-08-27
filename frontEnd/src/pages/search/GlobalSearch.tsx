@@ -74,7 +74,7 @@ export default function GlobalSearch() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search conversations, people, and messages"
-            className="h-11 w-full rounded-lg border border-border bg-surface pl-10 pr-4 text-sm text-ink placeholder:text-ink-faint outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+            className="h-11 w-full border border-border bg-surface pl-10 pr-4 text-sm text-ink placeholder:text-ink-faint outline-none focus:border-accent"
           />
         </div>
 
@@ -92,13 +92,13 @@ export default function GlobalSearch() {
 
         {q && results.conversations.length > 0 && (
           <section className="mb-6">
-            <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">Conversations</h2>
+            <h2 className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-wider text-ink-faint">Conversations</h2>
             <div className="flex flex-col gap-0.5">
               {results.conversations.map((c) => (
                 <button
                   key={c.id}
                   onClick={() => navigate(`/chat/${c.id}`)}
-                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-left hover:bg-surface-hover"
+                  className="flex items-center gap-3 px-3 py-2.5 text-left hover:bg-surface-hover"
                 >
                   <Avatar
                     name={getConversationName(c, users, currentUser.id)}
@@ -120,13 +120,13 @@ export default function GlobalSearch() {
 
         {q && results.people.length > 0 && (
           <section className="mb-6">
-            <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">People</h2>
+            <h2 className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-wider text-ink-faint">People</h2>
             <div className="flex flex-col gap-0.5">
               {results.people.map((u) => (
                 <button
                   key={u.id}
                   onClick={() => handleSelectPerson(u.id)}
-                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-left hover:bg-surface-hover"
+                  className="flex items-center gap-3 px-3 py-2.5 text-left hover:bg-surface-hover"
                 >
                   <Avatar name={u.name} status={u.status} showStatus size="sm" imageUrl={u.avatarUrl} />
                   <div className="min-w-0 flex-1">
@@ -142,7 +142,7 @@ export default function GlobalSearch() {
 
         {q && results.messages.length > 0 && (
           <section>
-            <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">Messages</h2>
+            <h2 className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-wider text-ink-faint">Messages</h2>
             <div className="flex flex-col gap-0.5">
               {results.messages.map((m) => {
                 const conversation = conversations.find((c) => c.id === m.conversationId);
@@ -152,9 +152,9 @@ export default function GlobalSearch() {
                   <button
                     key={m.id}
                     onClick={() => navigate(`/chat/${m.conversationId}`)}
-                    className="flex items-start gap-3 rounded-lg px-3 py-2.5 text-left hover:bg-surface-hover"
+                    className="flex items-start gap-3 px-3 py-2.5 text-left hover:bg-surface-hover"
                   >
-                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface text-ink-faint">
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center border border-border text-ink-faint">
                       <MessageSquare size={14} />
                     </div>
                     <div className="min-w-0 flex-1">

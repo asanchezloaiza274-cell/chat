@@ -19,13 +19,13 @@ export function ReactionBar({ reactions, currentUserId, onToggle }: ReactionBarP
             key={reaction.emoji}
             onClick={() => onToggle(reaction.emoji)}
             className={cn(
-              "flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-xs transition-colors",
+              "flex items-center gap-1 border px-1.5 py-0.5 font-mono text-xs transition-colors",
               reacted
                 ? "border-accent/40 bg-accent-soft text-accent"
                 : "border-border bg-surface text-ink-muted hover:bg-surface-hover",
             )}
           >
-            <span>{reaction.emoji}</span>
+            <span className="font-sans">{reaction.emoji}</span>
             <span className="font-medium">{reaction.userIds.length}</span>
           </button>
         );

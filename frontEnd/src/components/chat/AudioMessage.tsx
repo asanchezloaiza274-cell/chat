@@ -30,12 +30,12 @@ export function AudioMessage({ attachment, outgoing }: { attachment: AudioAttach
   const progress = elapsed / attachment.duration;
 
   return (
-    <div className="flex w-64 items-center gap-3 rounded-xl bg-black/10 px-3 py-2.5">
+    <div className="flex w-64 items-center gap-3 bg-black/10 px-3 py-2.5">
       <button
         onClick={() => setPlaying((p) => !p)}
         aria-label={playing ? "Pause voice message" : "Play voice message"}
         className={cn(
-          "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
+          "flex h-9 w-9 shrink-0 items-center justify-center",
           outgoing ? "bg-white/20 text-white" : "bg-accent text-accent-ink",
         )}
       >
@@ -49,7 +49,7 @@ export function AudioMessage({ attachment, outgoing }: { attachment: AudioAttach
             <span
               key={i}
               className={cn(
-                "w-[2px] shrink-0 rounded-full transition-colors",
+                "w-[2px] shrink-0 transition-colors",
                 i / BAR_HEIGHTS.length <= progress ? "opacity-100" : "opacity-30",
               )}
               style={{ height: `${h}%`, backgroundColor: "currentColor" }}
@@ -58,7 +58,7 @@ export function AudioMessage({ attachment, outgoing }: { attachment: AudioAttach
         </div>
       </div>
 
-      <span className="shrink-0 text-xs tabular-nums opacity-70">
+      <span className="shrink-0 font-mono text-xs tabular-nums opacity-70">
         {formatDuration(playing || elapsed > 0 ? attachment.duration - elapsed : attachment.duration)}
       </span>
     </div>

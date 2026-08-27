@@ -118,7 +118,7 @@ export default function SecuritySettings() {
           {sessions.map((session) => {
             const Icon = deviceIcon(session.device);
             return (
-              <div key={session.id} className="flex items-center gap-3 rounded-lg border border-border px-3 py-3">
+              <div key={session.id} className="flex items-center gap-3 border border-border px-3 py-3">
                 <Icon size={18} className="shrink-0 text-ink-faint" />
                 <div className="min-w-0 flex-1">
                   <p className="text-sm text-ink">
@@ -142,14 +142,14 @@ export default function SecuritySettings() {
         <div className="flex flex-col gap-2">
           <button
             onClick={() => setLogoutOpen(true)}
-            className="flex items-center gap-3 rounded-lg border border-border px-3 py-3 text-left text-sm text-ink hover:bg-surface-hover"
+            className="flex items-center gap-3 border border-border px-3 py-3 text-left text-sm text-ink hover:bg-surface-hover"
           >
             <LogOut size={16} />
             Log out of this account
           </button>
           <button
             onClick={() => setDeleteOpen(true)}
-            className="flex items-center gap-3 rounded-lg border border-danger/30 px-3 py-3 text-left text-sm text-danger hover:bg-danger-soft"
+            className="flex items-center gap-3 border border-danger/30 px-3 py-3 text-left text-sm text-danger hover:bg-danger-soft"
           >
             <Trash2 size={16} />
             Delete account

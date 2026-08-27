@@ -48,7 +48,7 @@ export default function Register() {
     <AuthLayout title="Create your account" subtitle="Start chatting in a few seconds">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
         {error && (
-          <div className="flex items-center gap-2 rounded-lg border border-danger/30 bg-danger-soft px-3 py-2.5 text-sm text-danger">
+          <div className="flex items-center gap-2 border-l-2 border-danger bg-danger-soft px-3 py-2.5 text-sm text-danger">
             <AlertCircle size={16} className="shrink-0" />
             {error}
           </div>
@@ -96,7 +96,7 @@ export default function Register() {
             type="checkbox"
             checked={acceptedTerms}
             onChange={(e) => setAcceptedTerms(e.target.checked)}
-            className="mt-0.5 h-4 w-4 rounded border-border-strong bg-surface text-accent accent-accent"
+            className="mt-0.5 h-4 w-4 border-border-strong bg-surface text-accent accent-accent"
           />
           <span>
             I agree to the <span className="font-medium text-ink">Terms of Service</span> and{" "}

@@ -24,7 +24,7 @@ export function EmojiPicker({ onSelect }: { onSelect: (emoji: string) => void })
       </IconButton>
 
       {open && (
-        <div className="animate-scale-in absolute bottom-full right-0 z-40 mb-2 w-72 origin-bottom-right rounded-xl border border-border bg-surface shadow-xl shadow-black/40">
+        <div className="animate-rise-in absolute bottom-full right-0 z-40 mb-2 w-72 origin-bottom-right border border-border-strong bg-surface">
           <div className="border-b border-border p-2">
             <div className="relative">
               <Search size={14} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-faint" />
@@ -32,7 +32,7 @@ export function EmojiPicker({ onSelect }: { onSelect: (emoji: string) => void })
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search emoji"
-                className="h-8 w-full rounded-md bg-canvas pl-8 pr-2 text-sm text-ink placeholder:text-ink-faint outline-none"
+                className="h-8 w-full border border-border bg-canvas pl-8 pr-2 text-sm text-ink placeholder:text-ink-faint outline-none focus:border-accent"
               />
             </div>
           </div>
@@ -44,7 +44,7 @@ export function EmojiPicker({ onSelect }: { onSelect: (emoji: string) => void })
                   key={cat.label}
                   onClick={() => setActiveCategory(i)}
                   className={cn(
-                    "rounded-md px-2 py-1 text-xs font-medium",
+                    "px-2 py-1 text-xs font-medium",
                     activeCategory === i ? "bg-accent-soft text-accent" : "text-ink-muted hover:bg-surface-hover",
                   )}
                 >
@@ -57,7 +57,7 @@ export function EmojiPicker({ onSelect }: { onSelect: (emoji: string) => void })
           <div className="max-h-52 overflow-y-auto p-2">
             {!query && (
               <div className="mb-2">
-                <p className="mb-1 px-1 text-[11px] font-semibold uppercase tracking-wide text-ink-faint">Recent</p>
+                <p className="mb-1 px-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-ink-faint">Recent</p>
                 <div className="grid grid-cols-8 gap-0.5">
                   {RECENT_EMOJIS.map((emoji) => (
                     <button
@@ -66,7 +66,7 @@ export function EmojiPicker({ onSelect }: { onSelect: (emoji: string) => void })
                         onSelect(emoji);
                         setOpen(false);
                       }}
-                      className="flex h-8 w-8 items-center justify-center rounded-md text-lg hover:bg-surface-hover"
+                      className="flex h-8 w-8 items-center justify-center text-lg hover:bg-surface-hover"
                     >
                       {emoji}
                     </button>
@@ -83,7 +83,7 @@ export function EmojiPicker({ onSelect }: { onSelect: (emoji: string) => void })
                     onSelect(emoji);
                     setOpen(false);
                   }}
-                  className="flex h-8 w-8 items-center justify-center rounded-md text-lg hover:bg-surface-hover"
+                  className="flex h-8 w-8 items-center justify-center text-lg hover:bg-surface-hover"
                 >
                   {emoji}
                 </button>

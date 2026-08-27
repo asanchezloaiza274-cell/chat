@@ -26,7 +26,7 @@ export function SettingsLayout() {
           <IconButton label="Back" size="sm" onClick={() => navigate("/chat")}>
             <ArrowLeft size={18} />
           </IconButton>
-          <h1 className="text-base font-semibold text-ink">Settings</h1>
+          <h1 className="text-[15px] font-semibold tracking-[-0.01em] text-ink">Settings</h1>
         </div>
 
         <div className="min-h-0 flex-1 md:flex">
@@ -37,8 +37,10 @@ export function SettingsLayout() {
                 to={to}
                 className={({ isActive }) =>
                   cn(
-                    "flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                    isActive ? "bg-accent-soft text-accent" : "text-ink-muted hover:bg-surface-hover hover:text-ink",
+                    "flex shrink-0 items-center gap-2.5 border-b-2 px-3 py-2 text-sm font-medium transition-colors md:border-b-0 md:border-l-2",
+                    isActive
+                      ? "border-accent bg-accent-soft text-accent"
+                      : "border-transparent text-ink-muted hover:bg-surface-hover hover:text-ink",
                   )
                 }
               >

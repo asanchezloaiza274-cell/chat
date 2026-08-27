@@ -34,7 +34,7 @@ export default function Login() {
     <AuthLayout title="Welcome back" subtitle="Sign in to continue to Loop">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
         {error && (
-          <div className="flex items-center gap-2 rounded-lg border border-danger/30 bg-danger-soft px-3 py-2.5 text-sm text-danger">
+          <div className="flex items-center gap-2 border-l-2 border-danger bg-danger-soft px-3 py-2.5 text-sm text-danger">
             <AlertCircle size={16} className="shrink-0" />
             {error}
           </div>
@@ -59,7 +59,7 @@ export default function Login() {
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="h-4 w-4 rounded border-border-strong bg-surface text-accent accent-accent"
+                className="h-4 w-4 border-border-strong bg-surface text-accent accent-accent"
               />
               Remember me
             </label>

@@ -58,17 +58,17 @@ export function ImageViewer({ images, index, onClose, onNavigate }: ImageViewerP
           <button
             onClick={() => onNavigate(index - 1)}
             aria-label="Previous image"
-            className="absolute left-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+            className="absolute left-4 flex h-10 w-10 items-center justify-center bg-white/10 text-white hover:bg-white/20"
           >
             <ChevronLeft size={22} />
           </button>
         )}
 
         {image.url ? (
-          <img src={image.url} alt={image.name} className="max-h-full max-w-full rounded-lg object-contain" />
+          <img src={image.url} alt={image.name} className="max-h-full max-w-full object-contain" />
         ) : (
           <div
-            className="flex h-80 w-full max-w-xl items-center justify-center rounded-lg"
+            className="flex h-80 w-full max-w-xl items-center justify-center"
             style={{ backgroundColor: image.color }}
           >
             <ImageIcon size={48} className="text-white/70" />
@@ -79,7 +79,7 @@ export function ImageViewer({ images, index, onClose, onNavigate }: ImageViewerP
           <button
             onClick={() => onNavigate(index + 1)}
             aria-label="Next image"
-            className="absolute right-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+            className="absolute right-4 flex h-10 w-10 items-center justify-center bg-white/10 text-white hover:bg-white/20"
           >
             <ChevronRight size={22} />
           </button>

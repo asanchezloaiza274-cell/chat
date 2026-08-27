@@ -54,10 +54,10 @@ export function ConversationInfoPanel({ open, onClose, conversation, messages, o
   return createPortal(
     <div className="fixed inset-0 z-[85] flex justify-end">
       <div className="animate-fade-in absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
-      <div className="animate-slide-in-right relative flex h-full w-full max-w-sm flex-col border-l border-border bg-panel shadow-2xl shadow-black/50">
+      <div className="animate-slide-in-right relative flex h-full w-full max-w-sm flex-col border-l border-border-strong bg-panel">
         <div className="flex items-center justify-between border-b border-border px-4 py-4">
-          <h2 className="text-sm font-semibold text-ink">Conversation info</h2>
-          <button onClick={onClose} aria-label="Close" className="rounded-lg p-1.5 text-ink-faint hover:bg-surface-hover hover:text-ink">
+          <h2 className="text-[13px] font-semibold tracking-[-0.01em] text-ink">Conversation info</h2>
+          <button onClick={onClose} aria-label="Close" className="p-1.5 text-ink-faint hover:bg-surface-hover hover:text-ink">
             <X size={18} />
           </button>
         </div>
@@ -87,7 +87,7 @@ export function ConversationInfoPanel({ open, onClose, conversation, messages, o
 
           {conversation.type === "group" && (
             <div className="border-t border-border px-4 py-3">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">Members</p>
+              <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-wider text-ink-faint">Members</p>
               <div className="flex flex-col gap-2">
                 {conversation.participantIds.map((id) => {
                   const member = users.find((u) => u.id === id);
@@ -114,7 +114,7 @@ export function ConversationInfoPanel({ open, onClose, conversation, messages, o
           )}
 
           <div className="border-t border-border px-4 py-3">
-            <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-faint">
+            <p className="mb-2 flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-ink-faint">
               <ImageIcon size={12} /> Shared media ({images.length})
             </p>
             {images.length === 0 ? (
@@ -123,11 +123,11 @@ export function ConversationInfoPanel({ open, onClose, conversation, messages, o
               <div className="grid grid-cols-4 gap-1.5">
                 {images.slice(0, 8).map((img) =>
                   img.url ? (
-                    <img key={img.id} src={img.url} alt={img.name} className="aspect-square rounded-md object-cover" />
+                    <img key={img.id} src={img.url} alt={img.name} className="aspect-square object-cover" />
                   ) : (
                     <div
                       key={img.id}
-                      className="flex aspect-square items-center justify-center rounded-md"
+                      className="flex aspect-square items-center justify-center"
                       style={{ backgroundColor: img.color }}
                     >
                       <ImageIcon size={14} className="text-white/70" />
@@ -139,7 +139,7 @@ export function ConversationInfoPanel({ open, onClose, conversation, messages, o
           </div>
 
           <div className="border-t border-border px-4 py-3">
-            <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-faint">
+            <p className="mb-2 flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-ink-faint">
               <FileText size={12} /> Shared files ({files.length})
             </p>
             {files.length === 0 ? (
@@ -158,7 +158,7 @@ export function ConversationInfoPanel({ open, onClose, conversation, messages, o
           </div>
 
           <div className="border-t border-border px-4 py-3">
-            <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-faint">
+            <p className="mb-2 flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-ink-faint">
               <Link2 size={12} /> Shared links ({links.length})
             </p>
             {links.length === 0 ? (
@@ -177,14 +177,14 @@ export function ConversationInfoPanel({ open, onClose, conversation, messages, o
           <div className="border-t border-border px-2 py-2">
             <button
               onClick={() => toggleMuteConversation(conversation.id)}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-ink hover:bg-surface-hover"
+              className="flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm text-ink hover:bg-surface-hover"
             >
               {conversation.muted ? <Bell size={16} /> : <BellOff size={16} />}
               {conversation.muted ? "Unmute notifications" : "Mute notifications"}
             </button>
             <button
               onClick={() => togglePinConversation(conversation.id)}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-ink hover:bg-surface-hover"
+              className="flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm text-ink hover:bg-surface-hover"
             >
               {conversation.pinned ? <PinOff size={16} /> : <Pin size={16} />}
               {conversation.pinned ? "Unpin conversation" : "Pin conversation"}
@@ -192,7 +192,7 @@ export function ConversationInfoPanel({ open, onClose, conversation, messages, o
             {conversation.type === "direct" && (
               <button
                 onClick={() => setConfirmAction("block")}
-                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-danger hover:bg-danger-soft"
+                className="flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm text-danger hover:bg-danger-soft"
               >
                 <Ban size={16} />
                 Block {otherUser?.name}
@@ -200,14 +200,14 @@ export function ConversationInfoPanel({ open, onClose, conversation, messages, o
             )}
             <button
               onClick={() => setConfirmAction("report")}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-danger hover:bg-danger-soft"
+              className="flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm text-danger hover:bg-danger-soft"
             >
               <Flag size={16} />
               Report
             </button>
             <button
               onClick={() => setConfirmAction("delete")}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-danger hover:bg-danger-soft"
+              className="flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm text-danger hover:bg-danger-soft"
             >
               <Trash2 size={16} />
               Delete conversation

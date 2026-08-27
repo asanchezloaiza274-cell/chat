@@ -42,7 +42,7 @@ export function PinnedBar({
       {open && (
         <div
           className={cn(
-            "animate-scale-in absolute left-4 right-4 top-full z-30 mt-1 max-h-72 overflow-y-auto rounded-lg border border-border bg-surface p-1.5 shadow-xl shadow-black/40 sm:left-auto sm:w-96",
+            "animate-rise-in absolute left-4 right-4 top-full z-30 mt-1 max-h-72 overflow-y-auto border border-border-strong bg-surface p-1.5 sm:left-auto sm:w-96",
           )}
         >
           {pinnedMessages
@@ -51,7 +51,7 @@ export function PinnedBar({
             .map((m) => {
               const sender = users.find((u) => u.id === m.senderId)?.name ?? "Someone";
               return (
-                <div key={m.id} className="flex items-start gap-2 rounded-md px-2.5 py-2 hover:bg-surface-hover">
+                <div key={m.id} className="flex items-start gap-2 px-2.5 py-2 hover:bg-surface-hover">
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-semibold text-ink">{sender}</p>
                     <p className="truncate text-xs text-ink-muted">{m.text ?? "Attachment"}</p>
@@ -59,7 +59,7 @@ export function PinnedBar({
                   <button
                     onClick={() => onUnpin(m.id)}
                     aria-label="Unpin message"
-                    className="shrink-0 rounded p-1 text-ink-faint hover:bg-surface-active hover:text-ink"
+                    className="shrink-0 p-1 text-ink-faint hover:bg-surface-active hover:text-ink"
                   >
                     <X size={13} />
                   </button>

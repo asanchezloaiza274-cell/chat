@@ -31,7 +31,7 @@ export function ConversationList({ onOpenMenu }: { onOpenMenu: () => void }) {
           <IconButton label="Open menu" size="sm" onClick={onOpenMenu} className="lg:hidden">
             <Menu size={18} />
           </IconButton>
-          <h1 className="text-lg font-semibold text-ink">Chats</h1>
+          <h1 className="text-lg font-semibold tracking-[-0.015em] text-ink">Chats</h1>
         </div>
         <Dropdown
           align="right"
@@ -54,7 +54,7 @@ export function ConversationList({ onOpenMenu }: { onOpenMenu: () => void }) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search conversations"
-            className="h-9 w-full rounded-lg border border-border bg-surface pl-9 pr-8 text-sm text-ink placeholder:text-ink-faint outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+            className="h-9 w-full border border-border bg-surface pl-9 pr-8 text-sm text-ink placeholder:text-ink-faint outline-none focus:border-accent"
           />
           {query && (
             <button
@@ -83,7 +83,7 @@ export function ConversationList({ onOpenMenu }: { onOpenMenu: () => void }) {
           <div className="flex flex-col gap-4">
             {pinned.length > 0 && (
               <div>
-                <p className="px-2 pb-1.5 text-xs font-semibold uppercase tracking-wide text-ink-faint">Pinned</p>
+                <p className="px-2 pb-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-ink-faint">Pinned</p>
                 <div className="flex flex-col gap-0.5">
                   {pinned.map((c) => (
                     <ConversationItem
@@ -102,7 +102,7 @@ export function ConversationList({ onOpenMenu }: { onOpenMenu: () => void }) {
             )}
             <div>
               {pinned.length > 0 && (
-                <p className="px-2 pb-1.5 text-xs font-semibold uppercase tracking-wide text-ink-faint">All chats</p>
+                <p className="px-2 pb-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-ink-faint">All chats</p>
               )}
               <div className="flex flex-col gap-0.5">
                 {rest.map((c) => (

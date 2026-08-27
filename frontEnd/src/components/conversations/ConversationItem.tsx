@@ -41,8 +41,8 @@ export function ConversationItem({
       onClick={onClick}
       aria-current={isActive}
       className={cn(
-        "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors",
-        isActive ? "bg-accent-soft" : "hover:bg-surface-hover",
+        "flex w-full items-center gap-3 border-l-2 px-3 py-2.5 text-left transition-colors",
+        isActive ? "border-accent bg-accent-soft" : "border-transparent hover:bg-surface-hover",
       )}
     >
       <Avatar
@@ -59,7 +59,7 @@ export function ConversationItem({
             {name}
           </span>
           {lastMessage && (
-            <span className={cn("shrink-0 text-xs", hasUnread ? "font-medium text-accent" : "text-ink-faint")}>
+            <span className={cn("shrink-0 font-mono text-[11px]", hasUnread ? "font-medium text-accent" : "text-ink-faint")}>
               {formatListTimestamp(lastMessage.createdAt)}
             </span>
           )}
