@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Play, Pause, Mic } from "lucide-react";
+import { Play, Pause, Mic, Loader2 } from "lucide-react";
 import type { AudioAttachment } from "../../types";
 import { formatDuration } from "../../utils/format";
 import { cn } from "../../utils/cn";
@@ -8,38 +8,76 @@ const BAR_HEIGHTS = [40, 70, 45, 90, 60, 30, 80, 50, 65, 35, 75, 55, 40, 85, 45,
 
 export function AudioMessage({ attachment, outgoing }: { attachment: AudioAttachment; outgoing?: boolean }) {
   const [playing, setPlaying] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [elapsed, setElapsed] = useState(0);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [duration, setDuration] = useState(attachment.duration);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    if (!playing) return;
-    intervalRef.current = setInterval(() => {
-      setElapsed((prev) => {
-        if (prev >= attachment.duration) {
-          setPlaying(false);
-          return 0;
-        }
-        return prev + 1;
-      });
-    }, 1000);
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [playing, attachment.duration]);
+    setElapsed(0);
+    setPlaying(false);
+  }, [attachment.url]);
 
-  const progress = elapsed / attachment.duration;
+  useEffect(() => {
+    const url = attachment.url;
+    return () => {
+      if (url?.startsWith("blob:")) URL.revokeObjectURL(url);
+    };
+  }, [attachment.url]);
+
+  const progress = duration > 0 ? elapsed / duration : 0;
+
+  function toggle() {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (playing || loading) {
+      audio.pause();
+      setLoading(false);
+    } else {
+      setLoading(true);
+      audio.play().catch(() => setLoading(false));
+    }
+  }
 
   return (
-    <div className="flex w-64 items-center gap-3 bg-black/10 px-3 py-2.5">
+    <div className="flex w-64 items-center gap-3 border border-border bg-surface px-3 py-2.5">
+      {attachment.url && (
+        <audio
+          ref={audioRef}
+          src={attachment.url}
+          preload="metadata"
+          onLoadedMetadata={(e) => {
+            const d = e.currentTarget.duration;
+            if (Number.isFinite(d) && d > 0) setDuration(d);
+          }}
+          onPlaying={() => {
+            setLoading(false);
+            setPlaying(true);
+          }}
+          onPause={() => setPlaying(false)}
+          onTimeUpdate={(e) => setElapsed(e.currentTarget.currentTime)}
+          onEnded={() => {
+            setPlaying(false);
+            setElapsed(0);
+          }}
+        />
+      )}
       <button
-        onClick={() => setPlaying((p) => !p)}
+        onClick={toggle}
+        disabled={!attachment.url}
         aria-label={playing ? "Pause voice message" : "Play voice message"}
         className={cn(
-          "flex h-9 w-9 shrink-0 items-center justify-center",
+          "flex h-9 w-9 shrink-0 items-center justify-center disabled:opacity-50",
           outgoing ? "bg-white/20 text-white" : "bg-accent text-accent-ink",
         )}
       >
-        {playing ? <Pause size={15} /> : <Play size={15} className="ml-0.5" />}
+        {loading ? (
+          <Loader2 size={15} className="animate-spin" />
+        ) : playing ? (
+          <Pause size={15} />
+        ) : (
+          <Play size={15} className="ml-0.5" />
+        )}
       </button>
 
       <div className="flex flex-1 items-center gap-1.5">
@@ -59,7 +97,7 @@ export function AudioMessage({ attachment, outgoing }: { attachment: AudioAttach
       </div>
 
       <span className="shrink-0 font-mono text-xs tabular-nums opacity-70">
-        {formatDuration(playing || elapsed > 0 ? attachment.duration - elapsed : attachment.duration)}
+        {formatDuration(playing || elapsed > 0 ? Math.max(0, duration - elapsed) : duration)}
       </span>
     </div>
   );

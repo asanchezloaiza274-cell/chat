@@ -4,19 +4,19 @@
   --font-sans: "Geist Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
-  /* Backgrounds — layered hierarchy, tinted slightly toward the accent hue so
-     dark surfaces read as rich rather than flat/achromatic */
-  --color-canvas: #0a0e16;
-  --color-rail: #0e1420;
-  --color-panel: #141b29;
-  --color-surface: #1a2333;
-  --color-surface-hover: #222d40;
-  --color-surface-active: #2b3850;
+  /* Backgrounds — layered hierarchy, near-neutral charcoal with only a
+     whisper of cool tint so the accent is what carries color, not the chrome */
+  --color-canvas: #0a0a0d;
+  --color-rail: #0e0f13;
+  --color-panel: #15161b;
+  --color-surface: #1b1c23;
+  --color-surface-hover: #23252d;
+  --color-surface-active: #2c2e38;
 
   /* Text */
-  --color-ink: #f3f5f9;
-  --color-ink-muted: #95a1b8;
-  --color-ink-faint: #56617a;
+  --color-ink: #f4f5f7;
+  --color-ink-muted: #96979f;
+  --color-ink-faint: #56575f;
 
   /* Borders */
   --color-border: rgba(255, 255, 255, 0.09);
@@ -57,8 +57,8 @@
   body {
     background-color: var(--color-canvas);
     background-image:
-      radial-gradient(1100px circle at 12% -8%, rgba(79, 143, 255, 0.12), transparent 55%),
-      radial-gradient(900px circle at 100% 0%, rgba(79, 143, 255, 0.06), transparent 50%);
+      radial-gradient(1100px circle at 12% -8%, rgba(79, 143, 255, 0.055), transparent 55%),
+      radial-gradient(900px circle at 100% 0%, rgba(79, 143, 255, 0.03), transparent 50%);
     background-attachment: fixed;
     color: var(--color-ink);
     font-feature-settings: "cv02", "cv03", "cv04", "cv11", "tnum";

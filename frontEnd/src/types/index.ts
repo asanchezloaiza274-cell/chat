@@ -61,6 +61,7 @@ export interface AudioAttachment {
   type: "audio";
   id: string;
   duration: number;
+  url?: string;
   status?: AttachmentStatus;
 }
 

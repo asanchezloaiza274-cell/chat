@@ -5,6 +5,7 @@ interface TooltipProps {
   label: string;
   children: ReactNode;
   side?: "top" | "bottom" | "left" | "right";
+  className?: string;
 }
 
 const SIDE_CLASSES: Record<NonNullable<TooltipProps["side"]>, string> = {
@@ -14,9 +15,9 @@ const SIDE_CLASSES: Record<NonNullable<TooltipProps["side"]>, string> = {
   right: "left-full top-1/2 -translate-y-1/2 ml-1.5",
 };
 
-export function Tooltip({ label, children, side = "top" }: TooltipProps) {
+export function Tooltip({ label, children, side = "top", className }: TooltipProps) {
   return (
-    <span className="group/tooltip relative inline-flex">
+    <span className={cn("group/tooltip relative inline-flex", className)}>
       {children}
       <span
         role="tooltip"

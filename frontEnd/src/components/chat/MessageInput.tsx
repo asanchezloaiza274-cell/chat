@@ -5,9 +5,17 @@ import { EmojiPicker } from "./EmojiPicker";
 import { ReplyPreview } from "./ReplyPreview";
 import { IconButton } from "../ui/IconButton";
 import { useChat } from "../../context/ChatContext";
+import { useToast } from "../../context/ToastContext";
 import { createAttachmentFromFile } from "../../utils/attachments";
 import type { Attachment } from "../../types";
 import { formatDuration } from "../../utils/format";
+
+const RECORDER_MIME_TYPES = ["audio/webm", "audio/ogg", "audio/mp4"];
+
+function pickRecorderMimeType(): string | undefined {
+  if (typeof MediaRecorder === "undefined") return undefined;
+  return RECORDER_MIME_TYPES.find((type) => MediaRecorder.isTypeSupported(type));
+}
 
 interface PendingItem {
   attachment: Attachment;
@@ -18,6 +26,7 @@ const TYPING_STOP_DELAY = 2500;
 
 export function MessageInput({ conversationId }: { conversationId: string }) {
   const { users, sendMessage, sendTyping, replyDraft, setReplyDraft } = useChat();
+  const { showToast } = useToast();
   const [text, setText] = useState("");
   const [pendingItems, setPendingItems] = useState<PendingItem[]>([]);
   const [isRecording, setIsRecording] = useState(false);
@@ -26,6 +35,10 @@ export function MessageInput({ conversationId }: { conversationId: string }) {
   const recordingInterval = useRef<ReturnType<typeof setInterval> | null>(null);
   const typingStopTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTypingRef = useRef(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<BlobPart[]>([]);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const isStartingRecordingRef = useRef(false);
 
   useEffect(() => {
     const el = textareaRef.current;
@@ -50,6 +63,19 @@ export function MessageInput({ conversationId }: { conversationId: string }) {
     return () => {
       if (typingStopTimer.current) clearTimeout(typingStopTimer.current);
       if (isTypingRef.current) sendTyping(conversationId, false);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversationId]);
+
+  useEffect(() => {
+    return () => {
+      stopMediaStream();
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (mediaRecorderRef.current) cancelRecording();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId]);
@@ -97,12 +123,94 @@ export function MessageInput({ conversationId }: { conversationId: string }) {
     setPendingItems((prev) => [...prev, ...items]);
   }
 
-  function handleSendRecording() {
+  function stopMediaStream() {
+    mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+    mediaStreamRef.current = null;
+  }
+
+  function stopRecorderSafely(recorder: MediaRecorder) {
+    if (recorder.state === "inactive") return;
+    try {
+      recorder.stop();
+    } catch {
+      // recorder was already stopping/inactive — nothing else to do
+    }
+  }
+
+  async function startRecording() {
+    if (isStartingRecordingRef.current || mediaRecorderRef.current) return;
+    if (!navigator.mediaDevices?.getUserMedia) {
+      showToast("Your browser doesn't support voice messages", "error");
+      return;
+    }
+    isStartingRecordingRef.current = true;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = pickRecorderMimeType();
+      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      recordedChunksRef.current = [];
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) recordedChunksRef.current.push(e.data);
+      };
+      recorder.onerror = () => {
+        stopMediaStream();
+        mediaRecorderRef.current = null;
+        recordedChunksRef.current = [];
+        setIsRecording(false);
+        showToast("Recording stopped unexpectedly", "error");
+      };
+      mediaStreamRef.current = stream;
+      mediaRecorderRef.current = recorder;
+      recorder.start();
+      setIsRecording(true);
+    } catch {
+      showToast("Couldn't access your microphone", "error");
+    } finally {
+      isStartingRecordingRef.current = false;
+    }
+  }
+
+  function cancelRecording() {
+    const recorder = mediaRecorderRef.current;
+    if (recorder) stopRecorderSafely(recorder);
+    stopMediaStream();
+    mediaRecorderRef.current = null;
+    recordedChunksRef.current = [];
+    setIsRecording(false);
+  }
+
+  async function handleSendRecording() {
+    const recorder = mediaRecorderRef.current;
+    if (!recorder) {
+      setIsRecording(false);
+      return;
+    }
     stopTyping();
     const duration = Math.max(1, recordingSeconds);
-    const attachment: Attachment = { type: "audio", id: crypto.randomUUID(), duration };
-    const file = new File([new Blob([], { type: "audio/webm" })], "voice-message.webm", { type: "audio/webm" });
-    sendMessage(conversationId, "", [attachment], [file]);
+    const sendConversationId = conversationId;
+    await new Promise<void>((resolve) => {
+      if (recorder.state === "inactive") {
+        resolve();
+        return;
+      }
+      recorder.addEventListener("stop", () => resolve(), { once: true });
+      stopRecorderSafely(recorder);
+    });
+    stopMediaStream();
+    mediaRecorderRef.current = null;
+
+    const mimeType = recorder.mimeType || "audio/webm";
+    const blob = new Blob(recordedChunksRef.current, { type: mimeType });
+    recordedChunksRef.current = [];
+    const ext = mimeType.includes("ogg") ? "ogg" : mimeType.includes("mp4") ? "m4a" : "webm";
+    const file = new File([blob], `voice-message.${ext}`, { type: mimeType });
+    const attachment: Attachment = {
+      type: "audio",
+      id: crypto.randomUUID(),
+      duration,
+      url: URL.createObjectURL(blob),
+    };
+    sendMessage(sendConversationId, "", [attachment], [file]);
     setIsRecording(false);
   }
 
@@ -141,7 +249,11 @@ export function MessageInput({ conversationId }: { conversationId: string }) {
                 {att.type === "audio" ? `Voice · ${formatDuration(att.duration)}` : att.name}
               </span>
               <button
-                onClick={() => setPendingItems((prev) => prev.filter((p) => p.attachment.id !== att.id))}
+                onClick={() => {
+                  const url = att.type !== "file" ? att.url : undefined;
+                  if (url?.startsWith("blob:")) URL.revokeObjectURL(url);
+                  setPendingItems((prev) => prev.filter((p) => p.attachment.id !== att.id));
+                }}
                 aria-label="Remove attachment"
                 className="text-ink-faint hover:text-ink"
               >
@@ -182,7 +294,7 @@ export function MessageInput({ conversationId }: { conversationId: string }) {
 
         {isRecording ? (
           <>
-            <IconButton label="Cancel recording" variant="ghost" onClick={() => setIsRecording(false)}>
+            <IconButton label="Cancel recording" variant="ghost" onClick={cancelRecording}>
               <Trash2 size={19} />
             </IconButton>
             <IconButton label="Send voice message" variant="solid" className="bg-gradient-to-b from-accent to-accent-hover text-accent-ink hover:brightness-110" onClick={handleSendRecording}>
@@ -198,7 +310,7 @@ export function MessageInput({ conversationId }: { conversationId: string }) {
             <Send size={17} />
           </IconButton>
         ) : (
-          <IconButton label="Record voice message" onClick={() => setIsRecording(true)}>
+          <IconButton label="Record voice message" onClick={startRecording}>
             <Mic size={19} />
           </IconButton>
         )}

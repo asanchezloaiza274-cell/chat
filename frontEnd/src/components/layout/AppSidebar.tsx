@@ -65,7 +65,7 @@ export function AppSidebar({ onNavigate, compact }: AppSidebarProps) {
             </NavLink>
           );
           return compact ? (
-            <Tooltip key={to} label={label} side="right">
+            <Tooltip key={to} label={label} side="right" className="w-full">
               {link}
             </Tooltip>
           ) : (

@@ -18,6 +18,7 @@ export function AttachmentMenu({ onFilesSelected }: { onFilesSelected: (files: F
     <>
       <Dropdown
         align="left"
+        placement="top"
         trigger={
           <IconButton label="Attach" showTooltip={false}>
             <Paperclip size={19} />

@@ -42,7 +42,7 @@ export function mapAttachment(raw: any): Attachment {
     };
   }
   if (raw.type === "audio") {
-    return { type: "audio", id: raw.id, duration: raw.duration ?? 0 };
+    return { type: "audio", id: raw.id, duration: raw.duration ?? 0, url: raw.url ?? undefined };
   }
   return {
     type: "file",

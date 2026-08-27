@@ -41,7 +41,7 @@ export async function createAttachmentFromFile(file: File): Promise<Attachment> 
   if (file.type.startsWith("audio/")) {
     const url = URL.createObjectURL(file);
     const duration = await readAudioDuration(url);
-    return { type: "audio", id, duration };
+    return { type: "audio", id, duration, url };
   }
 
   return {

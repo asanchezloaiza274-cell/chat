@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { ImageIcon, Loader2, AlertCircle } from "lucide-react";
 import type { ImageAttachment } from "../../types";
 import { cn } from "../../utils/cn";
@@ -5,6 +6,13 @@ import { cn } from "../../utils/cn";
 function ImageTile({ image, onOpen }: { image: ImageAttachment; onOpen: () => void }) {
   const uploading = image.status === "uploading";
   const failed = image.status === "failed";
+
+  useEffect(() => {
+    const url = image.url;
+    return () => {
+      if (url?.startsWith("blob:")) URL.revokeObjectURL(url);
+    };
+  }, [image.url]);
 
   return (
     <button
