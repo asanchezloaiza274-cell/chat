@@ -185,7 +185,7 @@ export function MessageInput({ conversationId }: { conversationId: string }) {
             <IconButton label="Cancel recording" variant="ghost" onClick={() => setIsRecording(false)}>
               <Trash2 size={19} />
             </IconButton>
-            <IconButton label="Send voice message" variant="solid" className="bg-accent text-accent-ink hover:bg-accent-hover" onClick={handleSendRecording}>
+            <IconButton label="Send voice message" variant="solid" className="bg-gradient-to-b from-accent to-accent-hover text-accent-ink hover:brightness-110" onClick={handleSendRecording}>
               <Send size={17} />
             </IconButton>
           </>
@@ -193,7 +193,7 @@ export function MessageInput({ conversationId }: { conversationId: string }) {
           <IconButton
             label="Send message"
             onClick={handleSend}
-            className="bg-accent text-accent-ink hover:bg-accent-hover"
+            className="bg-gradient-to-b from-accent to-accent-hover text-accent-ink hover:brightness-110"
           >
             <Send size={17} />
           </IconButton>

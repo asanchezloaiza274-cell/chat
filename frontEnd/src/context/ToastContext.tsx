@@ -56,7 +56,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             <div
               key={toast.id}
               role="status"
-              className="animate-toast-in pointer-events-auto flex items-center gap-2.5 border border-border-strong bg-surface px-4 py-3 text-sm text-ink"
+              className="shadow-elevated animate-toast-in pointer-events-auto flex items-center gap-2.5 border border-border-strong bg-surface px-4 py-3 text-sm text-ink"
             >
               <Icon size={16} className={cn("shrink-0", ICON_COLOR[toast.variant])} />
               <span>{toast.message}</span>

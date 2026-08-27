@@ -31,7 +31,7 @@ export function Dropdown({ trigger, items, align = "right", placement = "bottom"
         <div
           role="menu"
           className={cn(
-            "animate-rise-in absolute z-40 min-w-[190px] border border-border-strong bg-surface p-1.5",
+            "shadow-elevated-sm animate-rise-in absolute z-40 min-w-[190px] border border-border-strong bg-surface p-1.5",
             placement === "bottom" ? "top-full mt-1.5 origin-top" : "bottom-full mb-1.5 origin-bottom",
             align === "right" ? "right-0" : "left-0",
           )}

@@ -49,7 +49,7 @@ export function MessageHoverToolbar({
   return (
     <div
       className={cn(
-        "absolute -top-4 z-10 flex items-center gap-0.5 border border-border-strong bg-panel p-0.5 opacity-0 transition-opacity group-hover/message:opacity-100",
+        "shadow-elevated-sm absolute -top-4 z-10 flex items-center gap-0.5 border border-border-strong bg-surface-active p-0.5 opacity-0 transition-opacity group-hover/message:opacity-100",
         isOwn ? "right-2" : "left-2",
       )}
     >

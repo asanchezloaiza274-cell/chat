@@ -24,7 +24,7 @@ export function EmojiPicker({ onSelect }: { onSelect: (emoji: string) => void })
       </IconButton>
 
       {open && (
-        <div className="animate-rise-in absolute bottom-full right-0 z-40 mb-2 w-72 origin-bottom-right border border-border-strong bg-surface">
+        <div className="shadow-elevated animate-rise-in absolute bottom-full right-0 z-40 mb-2 w-72 origin-bottom-right border border-border-strong bg-surface">
           <div className="border-b border-border p-2">
             <div className="relative">
               <Search size={14} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-faint" />

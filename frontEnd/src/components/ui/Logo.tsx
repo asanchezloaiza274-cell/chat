@@ -8,7 +8,12 @@ export function Logo({ size = "md", showWordmark = true }: { size?: "sm" | "md" 
 
   return (
     <div className="flex items-center gap-2.5">
-      <div className={cn("flex shrink-0 items-center justify-center bg-accent text-accent-ink", boxSize)}>
+      <div
+        className={cn(
+          "flex shrink-0 items-center justify-center bg-gradient-to-b from-accent to-accent-hover text-accent-ink",
+          boxSize,
+        )}
+      >
         <MessagesSquare size={iconSize} strokeWidth={2.25} />
       </div>
       {showWordmark && (

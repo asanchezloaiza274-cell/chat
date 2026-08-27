@@ -42,7 +42,7 @@ export function PinnedBar({
       {open && (
         <div
           className={cn(
-            "animate-rise-in absolute left-4 right-4 top-full z-30 mt-1 max-h-72 overflow-y-auto border border-border-strong bg-surface p-1.5 sm:left-auto sm:w-96",
+            "shadow-elevated animate-rise-in absolute left-4 right-4 top-full z-30 mt-1 max-h-72 overflow-y-auto border border-border-strong bg-surface p-1.5 sm:left-auto sm:w-96",
           )}
         >
           {pinnedMessages

@@ -48,7 +48,7 @@ export function Modal({ open, onClose, title, children, size = "md", footer }: M
         aria-modal="true"
         aria-label={title}
         className={cn(
-          "animate-rise-in relative flex max-h-[85vh] w-full flex-col border border-border-strong bg-panel",
+          "shadow-elevated animate-rise-in relative flex max-h-[85vh] w-full flex-col border border-border-strong bg-panel",
           SIZE_CLASSES[size],
         )}
       >
