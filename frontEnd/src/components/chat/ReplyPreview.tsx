@@ -29,7 +29,7 @@ export function ReplyPreview({ senderName, preview, onCancel, variant = "compose
   }
 
   return (
-    <div className="flex items-center justify-between gap-3 border-t border-l-2 border-l-accent border-border bg-surface px-4 py-2.5">
+    <div className="flex items-center justify-between gap-3 border-t border-l-2 border-l-accent border-border bg-surface px-6 py-3">
       <div className="flex min-w-0 items-start gap-2">
         <CornerUpLeft size={15} className="mt-0.5 shrink-0 text-accent" />
         <div className="min-w-0">

@@ -56,7 +56,7 @@ export function ConversationInfoPanel({ open, onClose, conversation, messages, o
       <div className="animate-fade-in absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
       <div className="animate-slide-in-right relative flex h-full w-full max-w-sm flex-col border-l border-border-strong bg-panel">
         <div className="flex items-center justify-between border-b border-border px-4 py-4">
-          <h2 className="text-[13px] font-semibold tracking-[-0.01em] text-ink">Conversation info</h2>
+          <h2 className="text-sm font-semibold tracking-[-0.01em] text-ink">Conversation info</h2>
           <button onClick={onClose} aria-label="Close" className="p-1.5 text-ink-faint hover:bg-surface-hover hover:text-ink">
             <X size={18} />
           </button>

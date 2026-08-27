@@ -117,7 +117,7 @@ export function MessageInput({ conversationId }: { conversationId: string }) {
       )}
 
       {pendingItems.length > 0 && (
-        <div className="flex flex-wrap gap-2 border-b border-border px-4 py-2.5">
+        <div className="flex flex-wrap gap-2 border-b border-border px-6 py-3">
           {pendingItems.map(({ attachment: att }) => (
             <div key={att.id} className="flex items-center gap-1.5 border border-border bg-surface py-1 pl-1 pr-2 text-xs">
               {att.type === "image" ? (
@@ -152,7 +152,7 @@ export function MessageInput({ conversationId }: { conversationId: string }) {
         </div>
       )}
 
-      <div className="flex items-end gap-1.5 px-3 py-2.5">
+      <div className="flex items-end gap-2 px-4 py-3">
         {isRecording ? (
           <div className="flex flex-1 items-center gap-2.5 px-2">
             <span className="h-2.5 w-2.5 shrink-0 animate-pulse rounded-full bg-danger" />

@@ -84,7 +84,7 @@ export function ConversationList({ onOpenMenu }: { onOpenMenu: () => void }) {
             {pinned.length > 0 && (
               <div>
                 <p className="px-2 pb-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-ink-faint">Pinned</p>
-                <div className="flex flex-col gap-0.5">
+                <div className="flex flex-col gap-1">
                   {pinned.map((c) => (
                     <ConversationItem
                       key={c.id}

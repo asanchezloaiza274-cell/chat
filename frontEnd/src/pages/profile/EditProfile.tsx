@@ -51,7 +51,7 @@ export default function EditProfile() {
 
   return (
     <PageLayout title="Edit profile" backTo="/profile">
-      <form onSubmit={handleSubmit} className="mx-auto max-w-lg px-6 py-8">
+      <form onSubmit={handleSubmit} className="mx-auto max-w-xl px-8 py-10">
         <div className="mb-6 flex flex-col items-center">
           <div className="relative">
             <Avatar name={name || currentUser.name} size="xl" imageUrl={avatarPreview} />

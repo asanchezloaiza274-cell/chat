@@ -85,8 +85,8 @@ export function MessageList({
   const blocks = buildBlocks(messages);
 
   return (
-    <div ref={scrollRef} className="flex-1 overflow-y-auto py-3">
-      <div className="mx-auto flex max-w-3xl flex-col">
+    <div ref={scrollRef} className="flex-1 overflow-y-auto py-5">
+      <div className="mx-auto flex w-full max-w-3xl flex-col">
         {blocks.map((block) => {
           if (block.kind === "date") return <DateSeparator key={block.id} iso={block.iso} />;
 
@@ -94,9 +94,9 @@ export function MessageList({
           const isOwn = block.senderId === currentUserId;
 
           return (
-            <div key={block.id} className="py-0.5">
+            <div key={block.id} className="py-1.5">
               {isGroupConversation && !isOwn && (
-                <p className="px-4 pb-0.5 pl-12 text-xs font-semibold text-ink-muted">{sender?.name}</p>
+                <p className="px-6 pb-1 pl-12 text-xs font-semibold text-ink-muted">{sender?.name}</p>
               )}
               {block.items.map((message, i) => (
                 <MessageBubble

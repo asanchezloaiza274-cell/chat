@@ -13,7 +13,7 @@ export function ChatLayout() {
   return (
     <div className="flex h-screen w-full overflow-hidden bg-canvas">
       <div className="hidden lg:block">
-        <AppSidebar />
+        <AppSidebar compact />
       </div>
       <MobileSidebarDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
 

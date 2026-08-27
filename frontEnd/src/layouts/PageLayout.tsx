@@ -10,7 +10,7 @@ export function PageLayout({ title, backTo, children }: { title: string; backTo?
   return (
     <div className="flex h-screen w-full overflow-hidden bg-canvas">
       <div className="hidden lg:block">
-        <AppSidebar />
+        <AppSidebar compact />
       </div>
       <div className="flex h-full min-w-0 flex-1 flex-col">
         <div className="flex items-center gap-2 border-b border-border bg-panel px-4 py-3.5">

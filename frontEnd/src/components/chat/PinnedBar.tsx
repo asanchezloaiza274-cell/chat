@@ -26,7 +26,7 @@ export function PinnedBar({
     <div ref={ref} className="relative border-b border-border bg-panel">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-2.5 px-4 py-2 text-left hover:bg-surface-hover"
+        className="flex w-full items-center gap-2.5 px-6 py-2.5 text-left hover:bg-surface-hover"
       >
         <Pin size={14} className="shrink-0 text-accent" />
         <div className="min-w-0 flex-1">

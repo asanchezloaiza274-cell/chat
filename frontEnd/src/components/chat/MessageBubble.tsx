@@ -62,7 +62,7 @@ export function MessageBubble({
 
   if (message.deleted) {
     return (
-      <div className={cn("flex items-end gap-2 px-4 py-0.5", isOwn && "flex-row-reverse")}>
+      <div className={cn("flex items-end gap-2 px-6 py-0.5", isOwn && "flex-row-reverse")}>
         <div className="w-7 shrink-0" />
         <div className="flex items-center gap-1.5 border border-border px-3 py-2 text-sm italic text-ink-faint">
           <Ban size={13} />
@@ -78,7 +78,7 @@ export function MessageBubble({
   return (
     <div
       ref={registerRef}
-      className={cn("group/message flex items-end gap-2 px-4 py-0.5", isOwn && "flex-row-reverse")}
+      className={cn("group/message flex items-end gap-2 px-6 py-0.5", isOwn && "flex-row-reverse")}
     >
       <div className="w-7 shrink-0">
         {showAvatar && !isOwn && <Avatar name={senderName} size="sm" imageUrl={senderAvatarUrl} />}
@@ -112,7 +112,7 @@ export function MessageBubble({
 
         <div
           className={cn(
-            "min-w-0 border-l-2 px-3.5 py-2 text-sm leading-relaxed transition-colors",
+            "min-w-0 border-l-2 px-4 py-2.5 text-sm leading-relaxed transition-colors",
             isOwn ? "border-accent bg-accent text-accent-ink" : "border-transparent bg-surface text-ink",
             (images.length > 0 || otherAttachments.length > 0) && !message.text && "border-transparent bg-transparent p-0",
             isActiveMatch && "outline outline-1 outline-warning",

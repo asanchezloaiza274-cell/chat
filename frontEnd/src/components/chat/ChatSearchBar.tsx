@@ -21,7 +21,7 @@ export function ChatSearchBar({
   onClose,
 }: ChatSearchBarProps) {
   return (
-    <div className="animate-slide-up flex items-center gap-2 border-b border-border bg-panel px-4 py-2.5">
+    <div className="animate-slide-up flex items-center gap-2 border-b border-border bg-panel px-6 py-3">
       <Search size={15} className="shrink-0 text-ink-faint" />
       <input
         autoFocus

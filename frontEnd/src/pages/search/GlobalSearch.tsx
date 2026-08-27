@@ -66,7 +66,7 @@ export default function GlobalSearch() {
 
   return (
     <PageLayout title="Search" backTo="/chat">
-      <div className="mx-auto max-w-2xl px-6 py-6">
+      <div className="mx-auto max-w-2xl px-8 py-8">
         <div className="relative mb-6">
           <Search size={17} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-faint" />
           <input

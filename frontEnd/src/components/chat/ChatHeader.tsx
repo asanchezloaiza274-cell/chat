@@ -36,7 +36,7 @@ export function ChatHeader({ conversation, otherUser, onOpenInfo, onToggleSearch
   const notAvailable = () => showToast("This feature isn't available in the demo", "info");
 
   return (
-    <div className="flex items-center justify-between gap-2 border-b border-border bg-panel px-4 py-3">
+    <div className="flex items-center justify-between gap-2 border-b border-border bg-panel px-6 py-3.5">
       <div className="flex min-w-0 items-center gap-3">
         <IconButton label="Back to conversations" size="sm" onClick={() => navigate("/chat")} className="lg:hidden">
           <ArrowLeft size={18} />

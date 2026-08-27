@@ -12,7 +12,7 @@ export default function Profile() {
 
   return (
     <PageLayout title="Profile" backTo="/chat">
-      <div className="mx-auto max-w-lg px-6 py-8">
+      <div className="mx-auto max-w-xl px-8 py-10">
         <div className="flex flex-col items-center border border-border bg-panel px-6 py-8 text-center">
           <Avatar
             name={currentUser.name}
