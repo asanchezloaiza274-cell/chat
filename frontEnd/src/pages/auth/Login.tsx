@@ -41,10 +41,10 @@ export default function Login() {
         )}
 
         <Input
-          label="Email"
-          type="email"
-          placeholder="you@example.com"
-          autoComplete="email"
+          label="Email or username"
+          type="text"
+          placeholder="you@example.com or username"
+          autoComplete="username"
           leftIcon={<Mail size={16} />}
           value={email}
           onChange={(e) => setEmail(e.target.value)}

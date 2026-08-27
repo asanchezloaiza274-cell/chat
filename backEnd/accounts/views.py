@@ -57,10 +57,10 @@ class LoginView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
-        email = request.data.get('email', '')
+        identifier = request.data.get('email', '')
         password = request.data.get('password', '')
         try:
-            user = User.objects.get(email__iexact=email)
+            user = User.objects.get(Q(email__iexact=identifier) | Q(username__iexact=identifier))
         except User.DoesNotExist:
             user = None
 
