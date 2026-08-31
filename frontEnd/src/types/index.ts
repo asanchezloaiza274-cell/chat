@@ -90,6 +90,7 @@ export interface Conversation {
   name?: string;
   avatarColor?: string;
   participantIds: string[];
+  createdBy?: string;
   pinned?: boolean;
   muted?: boolean;
   unreadCount: number;

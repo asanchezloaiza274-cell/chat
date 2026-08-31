@@ -11,9 +11,9 @@ from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from accounts.models import User
+from accounts.models import Block, User
 from accounts.serializers import PublicUserSerializer
-from .models import Conversation, ConversationParticipant, Message, MessageAttachment, MessageReaction
+from .models import Conversation, ConversationParticipant, Message, MessageAttachment, MessageReaction, Report
 from .realtime import send_to_conversation, send_to_users
 from .serializers import (
     ConversationSerializer,
@@ -21,6 +21,11 @@ from .serializers import (
     CreateGroupConversationSerializer,
     MessageSerializer,
 )
+
+
+def _is_blocked_either_way(user_a, user_b):
+    return Block.objects.filter(blocker=user_a, blocked=user_b).exists() or \
+        Block.objects.filter(blocker=user_b, blocked=user_a).exists()
 
 
 def get_membership_or_403(conversation_id, user):
@@ -57,6 +62,8 @@ class ConversationListCreateView(generics.ListAPIView):
             serializer.is_valid(raise_exception=True)
             other_id = serializer.validated_data['user_id']
             other_user = get_object_or_404(User, pk=other_id)
+            if _is_blocked_either_way(request.user, other_user):
+                raise PermissionDenied('You cannot start a conversation with this user.')
 
             existing = (
                 Conversation.objects.filter(type=Conversation.Type.DIRECT, memberships__user=request.user)
@@ -102,6 +109,24 @@ class ConversationDetailView(APIView):
         get_membership_or_403(conversation_id, request.user)
         conversation = get_object_or_404(Conversation, pk=conversation_id)
         return Response(ConversationSerializer(conversation, context={'request': request}).data)
+
+    def patch(self, request, conversation_id):
+        membership = get_membership_or_403(conversation_id, request.user)
+        conversation = membership.conversation
+        if conversation.type != Conversation.Type.GROUP:
+            raise ValidationError({'name': 'Only group conversations can be renamed.'})
+
+        name = request.data.get('name', '').strip()
+        if not name:
+            raise ValidationError({'name': 'This field is required.'})
+
+        conversation.name = name
+        conversation.save(update_fields=['name'])
+
+        payload = ConversationSerializer(conversation, context={'request': request}).data
+        member_ids = list(conversation.memberships.values_list('user_id', flat=True))
+        send_to_users(member_ids, 'conversation.updated', {'conversation': payload})
+        return Response(payload)
 
     def delete(self, request, conversation_id):
         get_membership_or_403(conversation_id, request.user)
@@ -150,6 +175,61 @@ class ConversationPinView(APIView):
         return Response(payload)
 
 
+class ConversationParticipantsView(APIView):
+    def post(self, request, conversation_id):
+        membership = get_membership_or_403(conversation_id, request.user)
+        conversation = membership.conversation
+        if conversation.type != Conversation.Type.GROUP:
+            raise ValidationError({'detail': 'Only group conversations support adding participants.'})
+
+        user_id = request.data.get('user_id')
+        if not user_id:
+            raise ValidationError({'user_id': 'This field is required.'})
+        user = get_object_or_404(User, pk=user_id)
+
+        _, created = ConversationParticipant.objects.get_or_create(conversation=conversation, user=user)
+        if not created:
+            raise ValidationError({'user_id': 'This user is already a participant.'})
+
+        payload = ConversationSerializer(conversation, context={'request': request}).data
+        member_ids = list(conversation.memberships.values_list('user_id', flat=True))
+        send_to_users(member_ids, 'conversation.updated', {'conversation': payload})
+        return Response(payload, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, conversation_id, user_id):
+        membership = get_membership_or_403(conversation_id, request.user)
+        conversation = membership.conversation
+        if conversation.type != Conversation.Type.GROUP:
+            raise ValidationError({'detail': 'Only group conversations support removing participants.'})
+
+        is_self = str(user_id) == str(request.user.id)
+        if not is_self and (not conversation.created_by_id or str(conversation.created_by_id) != str(request.user.id)):
+            raise PermissionDenied('Only the group owner can remove other participants.')
+
+        target_membership = ConversationParticipant.objects.filter(conversation=conversation, user_id=user_id).first()
+        if not target_membership:
+            raise ValidationError({'user_id': 'This user is not a participant.'})
+        target_membership.delete()
+
+        send_to_users([user_id], 'conversation.deleted', {'conversation_id': str(conversation.id)})
+
+        remaining_ids = list(conversation.memberships.values_list('user_id', flat=True))
+        if remaining_ids:
+            payload = ConversationSerializer(conversation, context={'request': request}).data
+            send_to_users(remaining_ids, 'conversation.updated', {'conversation': payload})
+        else:
+            conversation.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ConversationReportView(APIView):
+    def post(self, request, conversation_id):
+        get_membership_or_403(conversation_id, request.user)
+        reason = request.data.get('reason', '').strip()
+        Report.objects.create(conversation_id=conversation_id, reporter=request.user, reason=reason)
+        return Response({'detail': 'Report submitted.'}, status=status.HTTP_201_CREATED)
+
+
 class MessageListCreateView(APIView):
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
@@ -171,6 +251,11 @@ class MessageListCreateView(APIView):
 
         if not text and not files:
             raise ValidationError({'text': 'Message must have text or an attachment.'})
+
+        if membership.conversation.type == Conversation.Type.DIRECT:
+            other = membership.conversation.memberships.exclude(user=request.user).select_related('user').first()
+            if other and _is_blocked_either_way(request.user, other.user):
+                raise PermissionDenied('You cannot message this user.')
 
         reply_to = None
         if reply_to_id:

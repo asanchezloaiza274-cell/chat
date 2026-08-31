@@ -52,8 +52,14 @@ interface ChatContextValue {
   markConversationRead: (conversationId: string) => void;
   startDirectConversation: (userId: string) => Promise<string>;
   createGroupConversation: (name: string, participantIds: string[], avatarColor?: string) => Promise<string>;
+  renameConversation: (conversationId: string, name: string) => Promise<void>;
+  addParticipant: (conversationId: string, userId: string) => Promise<void>;
+  removeParticipant: (conversationId: string, userId: string) => Promise<void>;
   updateCurrentUser: (updates: Partial<User> & { avatarFile?: File }) => Promise<void>;
   updateSettings: (updates: Partial<User>) => Promise<void>;
+  blockedUserIds: string[];
+  toggleBlockUser: (userId: string) => Promise<boolean>;
+  reportConversation: (conversationId: string, reason?: string) => Promise<void>;
 }
 
 const ChatContext = createContext<ChatContextValue | null>(null);
@@ -75,6 +81,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [typingUsers, setTypingUsers] = useState<Record<string, string[]>>({});
   const [replyDraft, setReplyDraft] = useState<ReplyRef | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [blockedUserIds, setBlockedUserIds] = useState<string[]>([]);
 
   const activeConversationIdRef = useRef(activeConversationId);
   const currentUserIdRef = useRef(currentUser!.id);
@@ -118,13 +125,15 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
     async function load() {
       try {
-        const [rawConversations, rawUsers] = await Promise.all([
+        const [rawConversations, rawUsers, blockedIds] = await Promise.all([
           api.get<any[]>("/api/conversations/"),
           api.get<any[]>("/api/users/"),
+          api.get<string[]>("/api/users/me/blocked/").catch(() => []),
         ]);
         if (cancelled) return;
         setConversations(rawConversations.map(mapConversation));
         setOtherUsers(rawUsers.map(mapUser));
+        setBlockedUserIds(blockedIds);
         rawConversations.forEach((raw) => seedLastMessage(raw.id, raw.last_message));
       } catch {
         if (!cancelled) showToast("Couldn't load your conversations", "error");
@@ -473,6 +482,67 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const renameConversation = useCallback(
+    async (conversationId: string, name: string) => {
+      try {
+        const raw = await api.patch<any>(`/api/conversations/${conversationId}/`, { name });
+        const conversation = mapConversation(raw);
+        setConversations((prev) => prev.map((c) => (c.id === conversationId ? conversation : c)));
+      } catch {
+        showToast("Couldn't rename this group", "error");
+      }
+    },
+    [showToast],
+  );
+
+  const addParticipant = useCallback(
+    async (conversationId: string, userId: string) => {
+      try {
+        const raw = await api.post<any>(`/api/conversations/${conversationId}/participants/`, { user_id: userId });
+        const conversation = mapConversation(raw);
+        setConversations((prev) => prev.map((c) => (c.id === conversationId ? conversation : c)));
+      } catch {
+        showToast("Couldn't add that person", "error");
+      }
+    },
+    [showToast],
+  );
+
+  const removeParticipant = useCallback(
+    async (conversationId: string, userId: string) => {
+      try {
+        await api.delete(`/api/conversations/${conversationId}/participants/${userId}/`);
+        if (userId === currentUserIdRef.current) {
+          setConversations((prev) => prev.filter((c) => c.id !== conversationId));
+          setMessages((prev) => {
+            const next = { ...prev };
+            delete next[conversationId];
+            return next;
+          });
+        } else {
+          setConversations((prev) =>
+            prev.map((c) =>
+              c.id === conversationId ? { ...c, participantIds: c.participantIds.filter((id) => id !== userId) } : c,
+            ),
+          );
+        }
+      } catch {
+        showToast("Something went wrong", "error");
+      }
+    },
+    [showToast],
+  );
+
+  const toggleBlockUser = useCallback(async (userId: string) => {
+    const raw = await api.post<{ blocked: boolean }>(`/api/users/${userId}/block/`);
+    setBlockedUserIds((prev) => (raw.blocked ? [...prev, userId] : prev.filter((id) => id !== userId)));
+    return raw.blocked;
+  }, []);
+
+  const reportConversation = useCallback(async (conversationId: string, reason?: string) => {
+    await api.post(`/api/conversations/${conversationId}/report/`, { reason: reason ?? "" });
+  }, []);
+
   const updateCurrentUser = useCallback(
     async (updates: Partial<User> & { avatarFile?: File }) => {
       const { avatarFile, name, username, bio } = updates;
@@ -537,8 +607,14 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       markConversationRead,
       startDirectConversation,
       createGroupConversation,
+      renameConversation,
+      addParticipant,
+      removeParticipant,
       updateCurrentUser,
       updateSettings,
+      blockedUserIds,
+      toggleBlockUser,
+      reportConversation,
     }),
     [
       users,
@@ -563,8 +639,14 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       markConversationRead,
       startDirectConversation,
       createGroupConversation,
+      renameConversation,
+      addParticipant,
+      removeParticipant,
       updateCurrentUser,
       updateSettings,
+      blockedUserIds,
+      toggleBlockUser,
+      reportConversation,
     ],
   );
 

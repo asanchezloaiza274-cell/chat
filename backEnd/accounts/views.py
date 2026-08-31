@@ -1,8 +1,9 @@
 from django.core.mail import send_mail
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import generics, permissions, status
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed, ValidationError
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -11,7 +12,7 @@ from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, Ou
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView as BaseTokenRefreshView
 
-from .models import User, UserSession
+from .models import Block, User, UserSession
 from .serializers import (
     ChangePasswordSerializer,
     MeSerializer,
@@ -197,6 +198,27 @@ class UserSessionListView(generics.ListAPIView):
 
     def get_serializer_context(self):
         return {'current_jti': self.request.query_params.get('current')}
+
+
+class BlockedUsersView(APIView):
+    def get(self, request):
+        ids = Block.objects.filter(blocker=request.user).values_list('blocked_id', flat=True)
+        return Response([str(pk) for pk in ids])
+
+
+class BlockToggleView(APIView):
+    def post(self, request, user_id):
+        target = get_object_or_404(User, pk=user_id)
+        if target.id == request.user.id:
+            raise ValidationError({'detail': 'You cannot block yourself.'})
+
+        block = Block.objects.filter(blocker=request.user, blocked=target).first()
+        if block:
+            block.delete()
+            return Response({'blocked': False})
+
+        Block.objects.create(blocker=request.user, blocked=target)
+        return Response({'blocked': True})
 
 
 class UserSessionDeleteView(APIView):

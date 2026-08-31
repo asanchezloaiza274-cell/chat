@@ -43,6 +43,38 @@
   --radius-sm: 3px;
 }
 
+/* Light theme — same semantic tokens, inverted for a bright, neutral surface.
+   Applied via a `data-theme` attribute set in JS (see src/utils/theme.ts) so the
+   resolved theme (including "system") is always known at paint time. */
+:root[data-theme="light"] {
+  --color-canvas: #f6f6f8;
+  --color-rail: #f0f0f3;
+  --color-panel: #ffffff;
+  --color-surface: #f3f3f6;
+  --color-surface-hover: #e9e9ee;
+  --color-surface-active: #dfe0e6;
+
+  --color-ink: #16171b;
+  --color-ink-muted: #63646c;
+  --color-ink-faint: #9a9ba3;
+
+  --color-border: rgba(0, 0, 0, 0.09);
+  --color-border-strong: rgba(0, 0, 0, 0.16);
+
+  --color-accent: #3d78ed;
+  --color-accent-hover: #2f63d1;
+  --color-accent-soft: rgba(61, 120, 237, 0.12);
+  --color-accent-ink: #ffffff;
+
+  --color-success: #1a9c78;
+  --color-success-soft: rgba(26, 156, 120, 0.13);
+  --color-danger: #e13d3d;
+  --color-danger-hover: #c92f2f;
+  --color-danger-soft: rgba(225, 61, 61, 0.1);
+  --color-warning: #b9750f;
+  --color-warning-soft: rgba(185, 117, 15, 0.12);
+}
+
 @layer base {
   * {
     border-color: var(--color-border);

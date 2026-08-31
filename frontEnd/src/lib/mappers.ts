@@ -81,6 +81,7 @@ export function mapConversation(raw: any): Conversation {
     name: raw.name || undefined,
     avatarColor: raw.avatar_color || undefined,
     participantIds: raw.participant_ids,
+    createdBy: raw.created_by ?? undefined,
     pinned: raw.pinned || undefined,
     muted: raw.muted || undefined,
     unreadCount: raw.unread_count,

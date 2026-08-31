@@ -3,23 +3,18 @@ import { Moon, Sun, Monitor } from "lucide-react";
 import { SettingsSection } from "../../components/settings/SettingsSection";
 import { SettingsRow } from "../../components/settings/SettingsRow";
 import { SegmentedControl } from "../../components/settings/SegmentedControl";
-import { useToast } from "../../context/ToastContext";
+import { getStoredTheme, setTheme as applyStoredTheme, type Theme } from "../../utils/theme";
 import { cn } from "../../utils/cn";
 
-type Theme = "dark" | "light" | "system";
 type Density = "comfortable" | "compact";
 
 export default function AppearanceSettings() {
-  const { showToast } = useToast();
-  const [theme, setTheme] = useState<Theme>("dark");
+  const [theme, setTheme] = useState<Theme>(() => getStoredTheme());
   const [density, setDensity] = useState<Density>("comfortable");
 
   function handleThemeChange(value: Theme) {
-    if (value !== "dark") {
-      showToast("Light theme is coming soon", "info");
-      return;
-    }
     setTheme(value);
+    applyStoredTheme(value);
   }
 
   const themeOptions: { value: Theme; label: string; icon: typeof Moon }[] = [
@@ -30,7 +25,7 @@ export default function AppearanceSettings() {
 
   return (
     <div>
-      <SettingsSection title="Theme" description="Loop currently supports a refined dark theme.">
+      <SettingsSection title="Theme" description="Choose a light or dark appearance, or follow your system setting.">
         <div className="grid grid-cols-3 gap-3">
           {themeOptions.map(({ value, label, icon: Icon }) => (
             <button

@@ -9,10 +9,10 @@ import { useChat } from "../../context/ChatContext";
 
 export default function NewChat() {
   const navigate = useNavigate();
-  const { users, currentUser, startDirectConversation } = useChat();
+  const { users, currentUser, startDirectConversation, blockedUserIds } = useChat();
   const [query, setQuery] = useState("");
 
-  const otherUsers = users.filter((u) => u.id !== currentUser.id);
+  const otherUsers = users.filter((u) => u.id !== currentUser.id && !blockedUserIds.includes(u.id));
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return otherUsers;

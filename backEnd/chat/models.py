@@ -96,6 +96,16 @@ class MessageAttachment(models.Model):
         return self.original_name
 
 
+class Report(models.Model):
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='reports')
+    reporter = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reports_filed')
+    reason = models.CharField(max_length=500, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Report on {self.conversation_id} by {self.reporter_id}'
+
+
 class MessageReaction(models.Model):
     message = models.ForeignKey(Message, on_delete=models.CASCADE, related_name='reactions')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reactions')

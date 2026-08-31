@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { Ban } from "lucide-react";
 import { useChat } from "../../context/ChatContext";
 import { ChatHeader } from "../../components/chat/ChatHeader";
 import { PinnedBar } from "../../components/chat/PinnedBar";
@@ -24,6 +25,8 @@ export default function ChatWindow() {
     togglePinMessage,
     setActiveConversationId,
     isLoading,
+    blockedUserIds,
+    toggleBlockUser,
   } = useChat();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -58,6 +61,7 @@ export default function ChatWindow() {
   const typingUserName = typingId ? users.find((u) => u.id === typingId)?.name : undefined;
   const pinnedMessages = conversationMessages.filter((m) => m.pinned);
   const name = getConversationName(conversation, users, currentUser.id);
+  const isBlocked = otherUser ? blockedUserIds.includes(otherUser.id) : false;
 
   return (
     <div className="flex h-full w-full flex-col bg-canvas">
@@ -118,7 +122,22 @@ export default function ChatWindow() {
         }
       />
 
-      <MessageInput conversationId={conversation.id} />
+      {isBlocked && otherUser ? (
+        <div className="flex items-center justify-between gap-3 border-t border-border bg-surface px-4 py-3">
+          <p className="flex items-center gap-2 text-sm text-ink-muted">
+            <Ban size={15} className="text-danger" />
+            You blocked {otherUser.name}. They can't send you messages.
+          </p>
+          <button
+            onClick={() => toggleBlockUser(otherUser.id)}
+            className="shrink-0 text-sm font-medium text-accent hover:underline"
+          >
+            Unblock
+          </button>
+        </div>
+      ) : (
+        <MessageInput conversationId={conversation.id} />
+      )}
 
       {viewer && (
         <ImageViewer

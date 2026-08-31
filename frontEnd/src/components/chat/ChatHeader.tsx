@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { ArrowLeft, Search, Phone, Video, MoreVertical, BellOff, Bell, Pin, PinOff, Trash2, Info } from "lucide-react";
+import { ArrowLeft, Search, Phone, Video, MoreVertical, BellOff, Bell, Pin, PinOff, Trash2, Info, LogOut } from "lucide-react";
 import { Avatar } from "../ui/Avatar";
 import { IconButton } from "../ui/IconButton";
 import { Dropdown } from "../ui/Dropdown";
@@ -22,8 +22,13 @@ interface ChatHeaderProps {
 export function ChatHeader({ conversation, otherUser, onOpenInfo, onToggleSearch, isSearchOpen }: ChatHeaderProps) {
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const { users, currentUser, togglePinConversation, toggleMuteConversation, deleteConversation } = useChat();
+  const { users, currentUser, togglePinConversation, toggleMuteConversation, deleteConversation, removeParticipant } =
+    useChat();
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [leaveOpen, setLeaveOpen] = useState(false);
+
+  const isGroup = conversation.type === "group";
+  const isOwner = isGroup && conversation.createdBy === currentUser.id;
 
   const name = getConversationName(conversation, users, currentUser.id);
   const subtitle =
@@ -86,12 +91,26 @@ export function ChatHeader({ conversation, otherUser, onOpenInfo, onToggleSearch
               onClick: () => togglePinConversation(conversation.id),
             },
             "separator",
-            {
-              label: "Delete conversation",
-              icon: <Trash2 size={15} />,
-              danger: true,
-              onClick: () => setDeleteOpen(true),
-            },
+            ...(isGroup
+              ? [
+                  {
+                    label: "Leave group",
+                    icon: <LogOut size={15} />,
+                    danger: true,
+                    onClick: () => setLeaveOpen(true),
+                  },
+                ]
+              : []),
+            ...(!isGroup || isOwner
+              ? [
+                  {
+                    label: "Delete conversation",
+                    icon: <Trash2 size={15} />,
+                    danger: true,
+                    onClick: () => setDeleteOpen(true),
+                  },
+                ]
+              : []),
           ]}
         />
       </div>
@@ -106,6 +125,18 @@ export function ChatHeader({ conversation, otherUser, onOpenInfo, onToggleSearch
         title="Delete conversation?"
         description="This action cannot be undone. All messages in this conversation will be permanently removed."
         confirmLabel="Delete"
+        danger
+      />
+      <ConfirmDialog
+        open={leaveOpen}
+        onClose={() => setLeaveOpen(false)}
+        onConfirm={() => {
+          removeParticipant(conversation.id, currentUser.id);
+          navigate("/chat");
+        }}
+        title="Leave group?"
+        description="You won't be able to see new messages in this group unless someone adds you back."
+        confirmLabel="Leave"
         danger
       />
     </div>

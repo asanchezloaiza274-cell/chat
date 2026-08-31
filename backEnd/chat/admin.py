@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Conversation, ConversationParticipant, Message, MessageAttachment, MessageReaction
+from .models import Conversation, ConversationParticipant, Message, MessageAttachment, MessageReaction, Report
 
 
 class ConversationParticipantInline(admin.TabularInline):
@@ -30,3 +30,9 @@ class MessageAdmin(admin.ModelAdmin):
     list_display = ['id', 'conversation', 'sender', 'created_at', 'is_deleted', 'is_pinned']
     list_filter = ['is_deleted', 'is_pinned']
     inlines = [MessageAttachmentInline, MessageReactionInline]
+
+
+@admin.register(Report)
+class ReportAdmin(admin.ModelAdmin):
+    list_display = ['id', 'conversation', 'reporter', 'created_at']
+    list_filter = ['created_at']

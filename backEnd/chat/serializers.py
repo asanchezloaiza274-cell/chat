@@ -74,13 +74,24 @@ class MessageSerializer(serializers.ModelSerializer):
         return [{'emoji': emoji, 'user_ids': user_ids} for emoji, user_ids in grouped.items()]
 
     def get_status(self, obj):
-        others = obj.conversation.memberships.exclude(user_id=obj.sender_id)
-        if not others.exists():
+        others = list(obj.conversation.memberships.exclude(user_id=obj.sender_id).select_related('user'))
+        if not others:
             return 'sent'
+
+        all_read = True
+        any_online = False
         for membership in others:
-            if not membership.last_read_at or membership.last_read_at < obj.created_at:
-                return 'sent'
-        return 'read'
+            is_read = membership.last_read_at and membership.last_read_at >= obj.created_at
+            if not is_read:
+                all_read = False
+                if membership.user.status == 'online':
+                    any_online = True
+
+        if all_read:
+            return 'read'
+        if any_online:
+            return 'delivered'
+        return 'sent'
 
 
 class ConversationSerializer(serializers.ModelSerializer):
@@ -89,13 +100,17 @@ class ConversationSerializer(serializers.ModelSerializer):
     muted = serializers.SerializerMethodField()
     pinned = serializers.SerializerMethodField()
     last_message = serializers.SerializerMethodField()
+    created_by = serializers.SerializerMethodField()
 
     class Meta:
         model = Conversation
         fields = [
-            'id', 'type', 'name', 'avatar_color', 'created_at',
+            'id', 'type', 'name', 'avatar_color', 'created_at', 'created_by',
             'participant_ids', 'unread_count', 'muted', 'pinned', 'last_message',
         ]
+
+    def get_created_by(self, obj):
+        return str(obj.created_by_id) if obj.created_by_id else None
 
     def _membership(self, obj):
         request = self.context.get('request')

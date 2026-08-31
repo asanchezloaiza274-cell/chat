@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
-from .models import User, UserSession
+from .models import Block, User, UserSession
 
 
 @admin.register(User)
@@ -19,3 +19,8 @@ class UserAdmin(BaseUserAdmin):
 class UserSessionAdmin(admin.ModelAdmin):
     list_display = ['user', 'device', 'ip_address', 'created_at', 'last_active_at']
     list_filter = ['device']
+
+
+@admin.register(Block)
+class BlockAdmin(admin.ModelAdmin):
+    list_display = ['blocker', 'blocked', 'created_at']

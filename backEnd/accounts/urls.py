@@ -16,4 +16,6 @@ urlpatterns = [
     path('users/me/settings/', views.MeSettingsView.as_view(), name='me_settings'),
     path('users/me/sessions/', views.UserSessionListView.as_view(), name='session_list'),
     path('users/me/sessions/<uuid:session_id>/', views.UserSessionDeleteView.as_view(), name='session_delete'),
+    path('users/me/blocked/', views.BlockedUsersView.as_view(), name='blocked_users'),
+    path('users/<uuid:user_id>/block/', views.BlockToggleView.as_view(), name='user_block'),
 ]

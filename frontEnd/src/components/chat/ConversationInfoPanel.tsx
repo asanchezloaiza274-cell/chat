@@ -12,9 +12,20 @@ import {
   ImageIcon,
   FileText,
   Link2,
+  Pencil,
+  Check,
+  UserPlus,
+  UserMinus,
+  LogOut,
+  Search,
 } from "lucide-react";
 import { Avatar } from "../ui/Avatar";
 import { ConfirmDialog } from "../ui/ConfirmDialog";
+import { Modal } from "../ui/Modal";
+import { Input } from "../ui/Input";
+import { IconButton } from "../ui/IconButton";
+import { UserListItem } from "../conversations/UserListItem";
+import { EmptyState } from "../ui/EmptyState";
 import { useChat } from "../../context/ChatContext";
 import { useToast } from "../../context/ToastContext";
 import { formatFileSize, formatLastSeen } from "../../utils/format";
@@ -32,9 +43,25 @@ interface ConversationInfoPanelProps {
 const URL_REGEX = /https?:\/\/[^\s]+/gi;
 
 export function ConversationInfoPanel({ open, onClose, conversation, messages, otherUser }: ConversationInfoPanelProps) {
-  const { users, currentUser, togglePinConversation, toggleMuteConversation, deleteConversation } = useChat();
+  const {
+    users,
+    currentUser,
+    togglePinConversation,
+    toggleMuteConversation,
+    deleteConversation,
+    renameConversation,
+    addParticipant,
+    removeParticipant,
+    blockedUserIds,
+    toggleBlockUser,
+    reportConversation,
+  } = useChat();
   const { showToast } = useToast();
-  const [confirmAction, setConfirmAction] = useState<"delete" | "block" | "report" | null>(null);
+  const [confirmAction, setConfirmAction] = useState<"delete" | "block" | "report" | "leave" | null>(null);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState("");
+  const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
+  const [addMemberQuery, setAddMemberQuery] = useState("");
 
   useEffect(() => {
     if (!open) return;
@@ -44,12 +71,45 @@ export function ConversationInfoPanel({ open, onClose, conversation, messages, o
     };
   }, [open]);
 
+  useEffect(() => {
+    if (!open) {
+      setIsEditingName(false);
+      setIsAddMemberOpen(false);
+    }
+  }, [open]);
+
   if (!open) return null;
 
   const name = getConversationName(conversation, users, currentUser.id);
   const images = messages.flatMap((m) => m.attachments?.filter((a): a is ImageAttachment => a.type === "image") ?? []);
   const files = messages.flatMap((m) => m.attachments?.filter((a): a is FileAttachment => a.type === "file") ?? []);
   const links = messages.flatMap((m) => (m.text ? m.text.match(URL_REGEX) ?? [] : []));
+
+  const isGroup = conversation.type === "group";
+  const isOwner = isGroup && conversation.createdBy === currentUser.id;
+  const isBlocked = otherUser ? blockedUserIds.includes(otherUser.id) : false;
+  const availableToAdd = users.filter(
+    (u) =>
+      u.id !== currentUser.id &&
+      !conversation.participantIds.includes(u.id) &&
+      (addMemberQuery.trim()
+        ? u.name.toLowerCase().includes(addMemberQuery.trim().toLowerCase()) ||
+          u.username.toLowerCase().includes(addMemberQuery.trim().toLowerCase())
+        : true),
+  );
+
+  function startEditingName() {
+    setNameDraft(conversation.name ?? "");
+    setIsEditingName(true);
+  }
+
+  function saveNameEdit() {
+    const trimmed = nameDraft.trim();
+    setIsEditingName(false);
+    if (trimmed && trimmed !== conversation.name) {
+      renameConversation(conversation.id, trimmed);
+    }
+  }
 
   return createPortal(
     <div className="fixed inset-0 z-[85] flex justify-end">
@@ -72,7 +132,32 @@ export function ConversationInfoPanel({ open, onClose, conversation, messages, o
               colorOverride={conversation.avatarColor}
               imageUrl={otherUser?.avatarUrl}
             />
-            <h3 className="mt-3 text-base font-semibold text-ink">{name}</h3>
+            {isEditingName ? (
+              <div className="mt-3 flex w-full items-center gap-1.5 px-2">
+                <input
+                  autoFocus
+                  value={nameDraft}
+                  onChange={(e) => setNameDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") saveNameEdit();
+                    if (e.key === "Escape") setIsEditingName(false);
+                  }}
+                  className="min-w-0 flex-1 border border-border-strong bg-surface px-2 py-1 text-center text-base font-semibold text-ink focus:outline-none focus-visible:ring-1 focus-visible:ring-accent"
+                />
+                <IconButton label="Save name" size="sm" onClick={saveNameEdit} showTooltip={false}>
+                  <Check size={16} />
+                </IconButton>
+              </div>
+            ) : (
+              <h3 className="mt-3 flex items-center gap-1.5 text-base font-semibold text-ink">
+                {name}
+                {isGroup && (
+                  <IconButton label="Rename group" size="sm" onClick={startEditingName} showTooltip={false}>
+                    <Pencil size={13} />
+                  </IconButton>
+                )}
+              </h3>
+            )}
             <p className="mt-0.5 text-sm text-ink-muted">
               {conversation.type === "group"
                 ? `${conversation.participantIds.length} members`
@@ -85,15 +170,24 @@ export function ConversationInfoPanel({ open, onClose, conversation, messages, o
             )}
           </div>
 
-          {conversation.type === "group" && (
+          {isGroup && (
             <div className="border-t border-border px-4 py-3">
-              <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-wider text-ink-faint">Members</p>
-              <div className="flex flex-col gap-2">
+              <div className="mb-2 flex items-center justify-between">
+                <p className="font-mono text-[10px] font-semibold uppercase tracking-wider text-ink-faint">Members</p>
+                <button
+                  onClick={() => setIsAddMemberOpen(true)}
+                  className="flex items-center gap-1 text-xs font-medium text-accent hover:underline"
+                >
+                  <UserPlus size={12} /> Add
+                </button>
+              </div>
+              <div className="flex flex-col gap-1">
                 {conversation.participantIds.map((id) => {
                   const member = users.find((u) => u.id === id);
                   if (!member) return null;
+                  const canRemove = isOwner && member.id !== currentUser.id;
                   return (
-                    <div key={id} className="flex items-center gap-2.5">
+                    <div key={id} className="group flex items-center gap-2.5 py-0.5">
                       <Avatar
                         name={member.name}
                         size="sm"
@@ -101,11 +195,23 @@ export function ConversationInfoPanel({ open, onClose, conversation, messages, o
                         showStatus
                         imageUrl={member.avatarUrl}
                       />
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <p className="truncate text-sm text-ink">
                           {member.name} {member.id === currentUser.id && <span className="text-ink-faint">(you)</span>}
+                          {member.id === conversation.createdBy && <span className="text-ink-faint"> · owner</span>}
                         </p>
                       </div>
+                      {canRemove && (
+                        <IconButton
+                          label={`Remove ${member.name}`}
+                          size="sm"
+                          variant="danger"
+                          className="opacity-0 group-hover:opacity-100"
+                          onClick={() => removeParticipant(conversation.id, member.id)}
+                        >
+                          <UserMinus size={14} />
+                        </IconButton>
+                      )}
                     </div>
                   );
                 })}
@@ -189,13 +295,22 @@ export function ConversationInfoPanel({ open, onClose, conversation, messages, o
               {conversation.pinned ? <PinOff size={16} /> : <Pin size={16} />}
               {conversation.pinned ? "Unpin conversation" : "Pin conversation"}
             </button>
-            {conversation.type === "direct" && (
+            {isGroup && (
               <button
-                onClick={() => setConfirmAction("block")}
+                onClick={() => setConfirmAction("leave")}
+                className="flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm text-danger hover:bg-danger-soft"
+              >
+                <LogOut size={16} />
+                Leave group
+              </button>
+            )}
+            {conversation.type === "direct" && otherUser && (
+              <button
+                onClick={() => (isBlocked ? toggleBlockUser(otherUser.id) : setConfirmAction("block"))}
                 className="flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm text-danger hover:bg-danger-soft"
               >
                 <Ban size={16} />
-                Block {otherUser?.name}
+                {isBlocked ? `Unblock ${otherUser.name}` : `Block ${otherUser.name}`}
               </button>
             )}
             <button
@@ -205,13 +320,15 @@ export function ConversationInfoPanel({ open, onClose, conversation, messages, o
               <Flag size={16} />
               Report
             </button>
-            <button
-              onClick={() => setConfirmAction("delete")}
-              className="flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm text-danger hover:bg-danger-soft"
-            >
-              <Trash2 size={16} />
-              Delete conversation
-            </button>
+            {(!isGroup || isOwner) && (
+              <button
+                onClick={() => setConfirmAction("delete")}
+                className="flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm text-danger hover:bg-danger-soft"
+              >
+                <Trash2 size={16} />
+                Delete conversation
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -229,9 +346,29 @@ export function ConversationInfoPanel({ open, onClose, conversation, messages, o
         danger
       />
       <ConfirmDialog
+        open={confirmAction === "leave"}
+        onClose={() => setConfirmAction(null)}
+        onConfirm={() => {
+          removeParticipant(conversation.id, currentUser.id);
+          onClose();
+        }}
+        title="Leave group?"
+        description="You won't be able to see new messages in this group unless someone adds you back."
+        confirmLabel="Leave"
+        danger
+      />
+      <ConfirmDialog
         open={confirmAction === "block"}
         onClose={() => setConfirmAction(null)}
-        onConfirm={() => showToast(`${otherUser?.name} has been blocked`, "success")}
+        onConfirm={async () => {
+          if (!otherUser) return;
+          try {
+            await toggleBlockUser(otherUser.id);
+            showToast(`${otherUser.name} has been blocked`, "success");
+          } catch {
+            showToast("Couldn't block this user", "error");
+          }
+        }}
         title={`Block ${otherUser?.name}?`}
         description="They won't be able to message you anymore."
         confirmLabel="Block"
@@ -240,12 +377,53 @@ export function ConversationInfoPanel({ open, onClose, conversation, messages, o
       <ConfirmDialog
         open={confirmAction === "report"}
         onClose={() => setConfirmAction(null)}
-        onConfirm={() => showToast("Thanks — we'll review this conversation", "success")}
+        onConfirm={async () => {
+          try {
+            await reportConversation(conversation.id);
+            showToast("Thanks — we'll review this conversation", "success");
+          } catch {
+            showToast("Couldn't submit your report", "error");
+          }
+        }}
         title="Report this conversation?"
         description="Our team will review the recent messages."
         confirmLabel="Report"
         danger
       />
+
+      <Modal
+        open={isAddMemberOpen}
+        onClose={() => setIsAddMemberOpen(false)}
+        title="Add members"
+        size="sm"
+      >
+        <div className="mb-3">
+          <Input
+            autoFocus
+            placeholder="Search people"
+            leftIcon={<Search size={16} />}
+            value={addMemberQuery}
+            onChange={(e) => setAddMemberQuery(e.target.value)}
+          />
+        </div>
+        <div className="flex max-h-72 flex-col gap-0.5 overflow-y-auto">
+          {availableToAdd.length === 0 ? (
+            <EmptyState icon={<UserPlus size={20} />} title="No one to add" description="Everyone is already in this group." />
+          ) : (
+            availableToAdd.map((user) => (
+              <UserListItem
+                key={user.id}
+                user={user}
+                onClick={() => {
+                  addParticipant(conversation.id, user.id);
+                  setIsAddMemberOpen(false);
+                  setAddMemberQuery("");
+                }}
+              />
+            ))
+          )}
+        </div>
+      </Modal>
     </div>,
     document.body,
   );
