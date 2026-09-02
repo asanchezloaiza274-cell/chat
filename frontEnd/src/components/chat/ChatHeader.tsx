@@ -53,6 +53,7 @@ export function ChatHeader({ conversation, otherUser, onOpenInfo, onToggleSearch
             showStatus={conversation.type === "direct"}
             colorOverride={conversation.avatarColor}
             imageUrl={otherUser?.avatarUrl}
+            glow
           />
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-ink">{name}</p>

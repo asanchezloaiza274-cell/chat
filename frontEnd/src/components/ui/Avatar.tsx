@@ -10,6 +10,7 @@ interface AvatarProps {
   className?: string;
   colorOverride?: string;
   imageUrl?: string;
+  glow?: boolean;
 }
 
 const SIZE_CLASSES: Record<NonNullable<AvatarProps["size"]>, string> = {
@@ -34,9 +35,11 @@ const STATUS_COLOR: Record<UserStatus, string> = {
   offline: "bg-ink-faint",
 };
 
-export function Avatar({ name, size = "md", status, showStatus, className, colorOverride, imageUrl }: AvatarProps) {
+export function Avatar({ name, size = "md", status, showStatus, className, colorOverride, imageUrl, glow }: AvatarProps) {
   return (
-    <div className={cn("relative inline-flex shrink-0", className)}>
+    <div
+      className={cn("relative inline-flex shrink-0 rounded-full", glow && "shadow-[0_0_0_3px_var(--color-accent-soft),0_0_16px_var(--color-accent-soft)]", className)}
+    >
       {imageUrl ? (
         <img
           src={imageUrl}

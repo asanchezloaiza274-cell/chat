@@ -22,7 +22,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         )}
         <div className="relative">
           {leftIcon && (
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-faint">
+            <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-faint">
               {leftIcon}
             </span>
           )}
@@ -31,8 +31,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             id={inputId}
             aria-invalid={!!error}
             className={cn(
-              "h-10 w-full border border-border bg-surface px-3.5 text-sm text-ink placeholder:text-ink-faint outline-none transition-colors focus:border-accent disabled:cursor-not-allowed disabled:opacity-50",
-              leftIcon && "pl-9",
+              "h-10 w-full rounded-full border border-border bg-surface px-4 text-sm text-ink placeholder:text-ink-faint outline-none transition-colors focus:border-accent disabled:cursor-not-allowed disabled:opacity-50",
+              leftIcon && "pl-10",
               rightElement && "pr-10",
               error && "border-danger focus:border-danger",
               className,

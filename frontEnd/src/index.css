@@ -1,78 +1,81 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Geist Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-sans: "Sora", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
-  /* Backgrounds — layered hierarchy, near-neutral charcoal with only a
-     whisper of cool tint so the accent is what carries color, not the chrome */
-  --color-canvas: #0a0a0d;
-  --color-rail: #0e0f13;
-  --color-panel: #15161b;
-  --color-surface: #1b1c23;
-  --color-surface-hover: #23252d;
-  --color-surface-active: #2c2e38;
+  /* Backgrounds — soft, near-white neutrals so the violet/blue accent glow
+     is what carries color and depth, not dark chrome */
+  --color-canvas: #fafaf8;
+  --color-rail: #fcfbf9;
+  --color-panel: #ffffff;
+  --color-surface: #f7f6f4;
+  --color-surface-hover: #f1f0ee;
+  --color-surface-active: #ebe9e6;
 
   /* Text */
-  --color-ink: #f4f5f7;
-  --color-ink-muted: #96979f;
-  --color-ink-faint: #56575f;
+  --color-ink: #1c1c22;
+  --color-ink-muted: #8b8b95;
+  --color-ink-faint: #b5b4bd;
 
   /* Borders */
-  --color-border: rgba(255, 255, 255, 0.09);
-  --color-border-strong: rgba(255, 255, 255, 0.2);
+  --color-border: rgba(28, 28, 34, 0.08);
+  --color-border-strong: rgba(28, 28, 34, 0.16);
 
-  /* Accent — single signal color used with intent */
-  --color-accent: #4f8fff;
-  --color-accent-hover: #3d78ed;
-  --color-accent-soft: rgba(79, 143, 255, 0.16);
-  --color-accent-ink: #071021;
-
-  /* Semantic */
-  --color-success: #2dd4a7;
-  --color-success-soft: rgba(45, 212, 167, 0.15);
-  --color-danger: #ff6161;
-  --color-danger-hover: #ea4444;
-  --color-danger-soft: rgba(255, 97, 97, 0.13);
-  --color-warning: #f2ac3c;
-  --color-warning-soft: rgba(242, 172, 60, 0.14);
-
-  /* Radius — deliberately restrained; sharp edges everywhere except circular avatars/dots */
-  --radius-none: 0px;
-  --radius-xs: 2px;
-  --radius-sm: 3px;
-}
-
-/* Light theme — same semantic tokens, inverted for a bright, neutral surface.
-   Applied via a `data-theme` attribute set in JS (see src/utils/theme.ts) so the
-   resolved theme (including "system") is always known at paint time. */
-:root[data-theme="light"] {
-  --color-canvas: #f6f6f8;
-  --color-rail: #f0f0f3;
-  --color-panel: #ffffff;
-  --color-surface: #f3f3f6;
-  --color-surface-hover: #e9e9ee;
-  --color-surface-active: #dfe0e6;
-
-  --color-ink: #16171b;
-  --color-ink-muted: #63646c;
-  --color-ink-faint: #9a9ba3;
-
-  --color-border: rgba(0, 0, 0, 0.09);
-  --color-border-strong: rgba(0, 0, 0, 0.16);
-
-  --color-accent: #3d78ed;
-  --color-accent-hover: #2f63d1;
-  --color-accent-soft: rgba(61, 120, 237, 0.12);
+  /* Accent — a violet-to-blue gradient pair used with intent (avatars, CTAs,
+     own-message bubbles); accent-hover doubles as the gradient's second stop */
+  --color-accent: #7c6fef;
+  --color-accent-hover: #5fa8e8;
+  --color-accent-soft: rgba(124, 111, 239, 0.12);
   --color-accent-ink: #ffffff;
 
-  --color-success: #1a9c78;
-  --color-success-soft: rgba(26, 156, 120, 0.13);
-  --color-danger: #e13d3d;
-  --color-danger-hover: #c92f2f;
-  --color-danger-soft: rgba(225, 61, 61, 0.1);
-  --color-warning: #b9750f;
-  --color-warning-soft: rgba(185, 117, 15, 0.12);
+  /* Semantic */
+  --color-success: #2fb673;
+  --color-success-soft: rgba(47, 182, 115, 0.14);
+  --color-danger: #e2504f;
+  --color-danger-hover: #cc3d3d;
+  --color-danger-soft: rgba(226, 80, 79, 0.11);
+  --color-warning: #dc9a3c;
+  --color-warning-soft: rgba(220, 154, 60, 0.14);
+
+  /* Radius — generous and round by default; nothing reads as a hard rectangle */
+  --radius-none: 0px;
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+}
+
+/* Dark theme — same Aura shapes and violet/blue accent, moved onto dark
+   neutral surfaces. Applied via a `data-theme` attribute set in JS (see
+   src/utils/theme.ts) so the resolved theme (including "system") is always
+   known at paint time. The bare :root above already carries the light
+   (default) palette, so only the dark override is needed here. */
+:root[data-theme="dark"] {
+  --color-canvas: #131218;
+  --color-rail: #16151c;
+  --color-panel: #1b1a22;
+  --color-surface: #212028;
+  --color-surface-hover: #2a2932;
+  --color-surface-active: #34333d;
+
+  --color-ink: #f2f1f6;
+  --color-ink-muted: #9b99a8;
+  --color-ink-faint: #605e6c;
+
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-strong: rgba(255, 255, 255, 0.18);
+
+  --color-accent: #8b7bf5;
+  --color-accent-hover: #5fa8e8;
+  --color-accent-soft: rgba(139, 123, 245, 0.18);
+  --color-accent-ink: #ffffff;
+
+  --color-success: #3ecf8e;
+  --color-success-soft: rgba(62, 207, 142, 0.16);
+  --color-danger: #f0605f;
+  --color-danger-hover: #d94d4c;
+  --color-danger-soft: rgba(240, 96, 95, 0.15);
+  --color-warning: #eab04a;
+  --color-warning-soft: rgba(234, 176, 74, 0.15);
 }
 
 @layer base {
@@ -89,8 +92,8 @@
   body {
     background-color: var(--color-canvas);
     background-image:
-      radial-gradient(1100px circle at 12% -8%, rgba(79, 143, 255, 0.055), transparent 55%),
-      radial-gradient(900px circle at 100% 0%, rgba(79, 143, 255, 0.03), transparent 50%);
+      radial-gradient(1100px circle at 12% -8%, rgba(124, 111, 239, 0.08), transparent 55%),
+      radial-gradient(900px circle at 100% 0%, rgba(95, 168, 232, 0.06), transparent 50%);
     background-attachment: fixed;
     color: var(--color-ink);
     font-feature-settings: "cv02", "cv03", "cv04", "cv11", "tnum";

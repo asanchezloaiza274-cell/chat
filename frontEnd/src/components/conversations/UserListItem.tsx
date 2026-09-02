@@ -15,8 +15,8 @@ export function UserListItem({ user, onClick, rightElement, selected }: UserList
     <button
       onClick={onClick}
       className={cn(
-        "flex w-full items-center gap-3 border-l-2 px-3.5 py-3 text-left transition-colors",
-        selected ? "border-accent bg-accent-soft" : "border-transparent hover:bg-surface-hover",
+        "flex w-full items-center gap-3 rounded-2xl px-3.5 py-3 text-left transition-colors",
+        selected ? "bg-accent-soft" : "hover:bg-surface-hover",
       )}
     >
       <Avatar name={user.name} status={user.status} showStatus size="md" imageUrl={user.avatarUrl} />

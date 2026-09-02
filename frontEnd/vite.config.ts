@@ -10,4 +10,7 @@ export default defineConfig({
     babel({ presets: [reactCompilerPreset()] }),
     tailwindcss(),
   ],
+  server: {
+    allowedHosts: ['woven-zen-deny.ngrok-free.dev'],
+  },
 });

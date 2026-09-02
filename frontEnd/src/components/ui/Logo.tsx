@@ -10,7 +10,7 @@ export function Logo({ size = "md", showWordmark = true }: { size?: "sm" | "md" 
     <div className="flex items-center gap-2.5">
       <div
         className={cn(
-          "flex shrink-0 items-center justify-center bg-gradient-to-b from-accent to-accent-hover text-accent-ink",
+          "flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent to-accent-hover text-accent-ink",
           boxSize,
         )}
       >

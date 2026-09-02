@@ -41,8 +41,8 @@ export function ConversationItem({
       onClick={onClick}
       aria-current={isActive}
       className={cn(
-        "flex w-full items-center gap-3 border-l-2 px-3.5 py-3 text-left transition-colors",
-        isActive ? "border-accent bg-accent-soft" : "border-transparent hover:bg-surface-hover",
+        "flex w-full items-center gap-3 rounded-2xl px-3.5 py-3 text-left transition-colors",
+        isActive ? "bg-accent-soft" : "hover:bg-surface-hover",
       )}
     >
       <Avatar
@@ -52,6 +52,7 @@ export function ConversationItem({
         colorOverride={conversation.avatarColor}
         imageUrl={otherUser?.avatarUrl}
         size="md"
+        glow={isActive}
       />
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
