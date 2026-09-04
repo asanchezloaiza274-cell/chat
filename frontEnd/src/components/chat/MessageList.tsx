@@ -40,7 +40,12 @@ interface MessageListProps {
   activeMatchId?: string;
   onOpenImages: (images: ImageAttachment[], index: number) => void;
   emptyState?: ReactNode;
+  hasMore?: boolean;
+  isLoadingMore?: boolean;
+  onLoadMore?: () => void;
 }
+
+const LOAD_MORE_THRESHOLD_PX = 150;
 
 export function MessageList({
   messages,
@@ -52,21 +57,39 @@ export function MessageList({
   activeMatchId,
   onOpenImages,
   emptyState,
+  hasMore,
+  isLoadingMore,
+  onLoadMore,
 }: MessageListProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  const prevCountRef = useRef(0);
+  const prevFirstIdRef = useRef<string | null>(null);
+  const prevLastIdRef = useRef<string | null>(null);
+  const pendingScrollHeightRef = useRef<number | null>(null);
 
   useEffect(() => {
-    const grew = messages.length > prevCountRef.current;
-    prevCountRef.current = messages.length;
-    if (grew && !activeMatchId) {
-      scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const firstId = messages[0]?.id ?? null;
+    const lastId = messages[messages.length - 1]?.id ?? null;
+
+    if (pendingScrollHeightRef.current !== null) {
+      // Older messages were prepended: keep the same messages in view instead of
+      // jumping to the bottom or staying pinned to the (now different) top.
+      el.scrollTop = el.scrollHeight - pendingScrollHeightRef.current;
+      pendingScrollHeightRef.current = null;
+    } else if (prevLastIdRef.current !== null && lastId !== prevLastIdRef.current && !activeMatchId) {
+      el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
     }
-  }, [messages.length, activeMatchId]);
+
+    prevFirstIdRef.current = firstId;
+    prevLastIdRef.current = lastId;
+  }, [messages, activeMatchId]);
 
   useEffect(() => {
-    prevCountRef.current = 0;
+    prevFirstIdRef.current = null;
+    prevLastIdRef.current = null;
     requestAnimationFrame(() => {
       scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
     });
@@ -78,6 +101,15 @@ export function MessageList({
     messageRefs.current[activeMatchId]?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [activeMatchId]);
 
+  function handleScroll() {
+    const el = scrollRef.current;
+    if (!el || !onLoadMore || !hasMore || isLoadingMore) return;
+    if (el.scrollTop < LOAD_MORE_THRESHOLD_PX) {
+      pendingScrollHeightRef.current = el.scrollHeight;
+      onLoadMore();
+    }
+  }
+
   if (messages.length === 0) {
     return <div className="flex flex-1 flex-col overflow-y-auto">{emptyState}</div>;
   }
@@ -85,7 +117,7 @@ export function MessageList({
   const blocks = buildBlocks(messages);
 
   return (
-    <div ref={scrollRef} className="flex-1 overflow-y-auto py-5">
+    <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto py-5">
       <div className="mx-auto flex w-full max-w-3xl flex-col">
         {blocks.map((block) => {
           if (block.kind === "date") return <DateSeparator key={block.id} iso={block.iso} />;

@@ -1,5 +1,6 @@
 import json
 
+from django.conf import settings
 from django.db.models import Max, Q
 from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404
@@ -235,13 +236,34 @@ class MessageListCreateView(APIView):
 
     def get(self, request, conversation_id):
         get_membership_or_403(conversation_id, request.user)
-        messages = (
+        try:
+            limit = min(int(request.query_params.get('limit', 50)), 100)
+        except (TypeError, ValueError):
+            limit = 50
+        limit = max(limit, 1)
+
+        qs = (
             Message.objects.filter(conversation_id=conversation_id)
             .select_related('reply_to', 'conversation')
             .prefetch_related('attachments', 'reactions')
-            .order_by('created_at')
         )
-        return Response(MessageSerializer(messages, many=True, context={'request': request}).data)
+
+        before = request.query_params.get('before')
+        if before:
+            qs = qs.filter(created_at__lt=before)
+
+        # Fetch newest-first so `before` pagination is cheap, then reverse
+        # to the ascending order the client renders. Over-fetch by one to
+        # know whether there are still older messages left.
+        page = list(qs.order_by('-created_at')[:limit + 1])
+        has_more = len(page) > limit
+        page = page[:limit]
+        page.reverse()
+
+        return Response({
+            'results': MessageSerializer(page, many=True, context={'request': request}).data,
+            'has_more': has_more,
+        })
 
     def post(self, request, conversation_id):
         membership = get_membership_or_403(conversation_id, request.user)
@@ -251,6 +273,14 @@ class MessageListCreateView(APIView):
 
         if not text and not files:
             raise ValidationError({'text': 'Message must have text or an attachment.'})
+
+        for file in files:
+            if file.size > settings.MAX_ATTACHMENT_SIZE:
+                raise ValidationError({'files': f'"{file.name}" exceeds the maximum size of '
+                                                  f'{settings.MAX_ATTACHMENT_SIZE // (1024 * 1024)}MB.'})
+            content_type = getattr(file, 'content_type', '') or ''
+            if content_type not in settings.ALLOWED_ATTACHMENT_CONTENT_TYPES:
+                raise ValidationError({'files': f'"{file.name}" has an unsupported file type.'})
 
         if membership.conversation.type == Conversation.Type.DIRECT:
             other = membership.conversation.memberships.exclude(user=request.user).select_related('user').first()

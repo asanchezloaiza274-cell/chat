@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import password_validation
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_bytes, force_str
@@ -66,6 +67,16 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
         qs = User.objects.exclude(pk=self.instance.pk).filter(username__iexact=value)
         if qs.exists():
             raise serializers.ValidationError('This username is already taken.')
+        return value
+
+    def validate_avatar(self, value):
+        if value.size > settings.MAX_AVATAR_SIZE:
+            raise serializers.ValidationError(
+                f'Avatar exceeds the maximum size of {settings.MAX_AVATAR_SIZE // (1024 * 1024)}MB.'
+            )
+        content_type = getattr(value, 'content_type', '') or ''
+        if content_type not in settings.ALLOWED_AVATAR_CONTENT_TYPES:
+            raise serializers.ValidationError('Unsupported image type.')
         return value
 
 

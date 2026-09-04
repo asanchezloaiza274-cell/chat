@@ -27,6 +27,9 @@ export default function ChatWindow() {
     isLoading,
     blockedUserIds,
     toggleBlockUser,
+    hasMoreMessages,
+    loadingMoreMessages,
+    loadMoreMessages,
   } = useChat();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -105,6 +108,9 @@ export default function ChatWindow() {
         searchQuery={searchQuery.trim() ? searchQuery : undefined}
         activeMatchId={matches[activeMatchIndex]?.id}
         onOpenImages={(images, index) => setViewer({ images, index })}
+        hasMore={hasMoreMessages[conversation.id]}
+        isLoadingMore={loadingMoreMessages[conversation.id]}
+        onLoadMore={() => loadMoreMessages(conversation.id)}
         emptyState={
           <div className="flex flex-1 flex-col items-center justify-center px-6 py-12 text-center">
             <Avatar

@@ -36,6 +36,9 @@ interface ChatContextValue {
   activeConversationId: string | null;
   typingUsers: Record<string, string[]>;
   isLoading: boolean;
+  hasMoreMessages: Record<string, boolean>;
+  loadingMoreMessages: Record<string, boolean>;
+  loadMoreMessages: (conversationId: string) => void;
   setActiveConversationId: (id: string | null) => void;
   sendMessage: (conversationId: string, text: string, attachments?: Attachment[], files?: File[]) => void;
   replyDraft: ReplyRef | null;
@@ -82,6 +85,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [replyDraft, setReplyDraft] = useState<ReplyRef | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [blockedUserIds, setBlockedUserIds] = useState<string[]>([]);
+  const [hasMoreMessages, setHasMoreMessages] = useState<Record<string, boolean>>({});
+  const [loadingMoreMessages, setLoadingMoreMessages] = useState<Record<string, boolean>>({});
 
   const activeConversationIdRef = useRef(activeConversationId);
   const currentUserIdRef = useRef(currentUser!.id);
@@ -257,12 +262,35 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     if (loadedConversationsRef.current.has(conversationId)) return;
     loadedConversationsRef.current.add(conversationId);
     try {
-      const raw = await api.get<any[]>(`/api/conversations/${conversationId}/messages/`);
-      setMessages((prev) => ({ ...prev, [conversationId]: raw.map(mapMessage) }));
+      const raw = await api.get<{ results: any[]; has_more: boolean }>(
+        `/api/conversations/${conversationId}/messages/?limit=50`,
+      );
+      setMessages((prev) => ({ ...prev, [conversationId]: raw.results.map(mapMessage) }));
+      setHasMoreMessages((prev) => ({ ...prev, [conversationId]: raw.has_more }));
     } catch {
       loadedConversationsRef.current.delete(conversationId);
     }
   }, []);
+
+  const loadMoreMessages = useCallback(async (conversationId: string) => {
+    if (loadingMoreMessages[conversationId] || !hasMoreMessages[conversationId]) return;
+    const oldest = messagesRef.current[conversationId]?.[0];
+    if (!oldest) return;
+
+    setLoadingMoreMessages((prev) => ({ ...prev, [conversationId]: true }));
+    try {
+      const raw = await api.get<{ results: any[]; has_more: boolean }>(
+        `/api/conversations/${conversationId}/messages/?limit=50&before=${encodeURIComponent(oldest.createdAt)}`,
+      );
+      const older = raw.results.map(mapMessage);
+      setMessages((prev) => ({ ...prev, [conversationId]: [...older, ...(prev[conversationId] ?? [])] }));
+      setHasMoreMessages((prev) => ({ ...prev, [conversationId]: raw.has_more }));
+    } catch {
+      showToast("Couldn't load older messages", "error");
+    } finally {
+      setLoadingMoreMessages((prev) => ({ ...prev, [conversationId]: false }));
+    }
+  }, [hasMoreMessages, loadingMoreMessages, showToast]);
 
   const markConversationRead = useCallback((conversationId: string) => {
     setConversations((prev) => prev.map((c) => (c.id === conversationId ? { ...c, unreadCount: 0 } : c)));
@@ -591,6 +619,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       activeConversationId,
       typingUsers,
       isLoading,
+      hasMoreMessages,
+      loadingMoreMessages,
+      loadMoreMessages,
       setActiveConversationId,
       sendMessage,
       replyDraft,
@@ -624,6 +655,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       activeConversationId,
       typingUsers,
       isLoading,
+      hasMoreMessages,
+      loadingMoreMessages,
+      loadMoreMessages,
       setActiveConversationId,
       sendMessage,
       replyDraft,

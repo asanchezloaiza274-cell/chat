@@ -7,6 +7,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 
 # ============================================================
@@ -20,12 +21,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY
 # ============================================================
 
-SECRET_KEY = os.environ.get(
-    "DJANGO_SECRET_KEY",
-    "django-insecure-local-development-key-change-this"
-)
+_INSECURE_SECRET_KEY = "django-insecure-local-development-key-change-this"
+
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", _INSECURE_SECRET_KEY)
 
 DEBUG = os.environ.get("DEBUG", "True").lower() == "true"
+
+if not DEBUG and SECRET_KEY == _INSECURE_SECRET_KEY:
+    raise ImproperlyConfigured(
+        "DJANGO_SECRET_KEY must be set to a real secret when DEBUG=False. "
+        "Refusing to start with the insecure default in production."
+    )
 
 
 ALLOWED_HOSTS = [
@@ -136,11 +142,26 @@ ASGI_APPLICATION = "config.asgi.application"
 # DJANGO CHANNELS
 # ============================================================
 
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer",
-    },
-}
+# Local/single-process: in-memory layer (default, no extra infra needed).
+# Production with multiple workers: set REDIS_URL so events reach users
+# connected to a different worker process.
+REDIS_URL = os.environ.get("REDIS_URL")
+
+if REDIS_URL:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
+                "hosts": [REDIS_URL],
+            },
+        },
+    }
+else:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels.layers.InMemoryChannelLayer",
+        },
+    }
 
 
 # ============================================================
@@ -235,6 +256,32 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 
 # ============================================================
+# UPLOAD LIMITS
+# ============================================================
+
+MAX_ATTACHMENT_SIZE = 25 * 1024 * 1024  # 25MB
+
+ALLOWED_ATTACHMENT_CONTENT_TYPES = {
+    # Images
+    "image/jpeg", "image/png", "image/gif", "image/webp", "image/avif", "image/svg+xml",
+    # Audio (voice messages)
+    "audio/webm", "audio/mpeg", "audio/mp4", "audio/ogg", "audio/wav", "audio/x-m4a",
+    # Common documents
+    "application/pdf", "text/plain", "application/zip",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+}
+
+MAX_AVATAR_SIZE = 5 * 1024 * 1024  # 5MB
+
+ALLOWED_AVATAR_CONTENT_TYPES = {
+    "image/jpeg", "image/png", "image/gif", "image/webp", "image/avif",
+}
+
+
+# ============================================================
 # DEFAULT PRIMARY KEY
 # ============================================================
 
@@ -267,6 +314,16 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
     ),
+
+    "DEFAULT_THROTTLE_CLASSES": (
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ),
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "30/min",
+        "user": "300/min",
+        "auth": "10/min",
+    },
 
     "DATETIME_FORMAT": "iso-8601",
 }

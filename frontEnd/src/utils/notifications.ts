@@ -28,8 +28,10 @@ export function showDesktopNotification(
     icon: icon || "/favicon.svg",
     badge: "/favicon.svg",
     silent,
+    // `renotify` is part of the Notifications spec but missing from this
+    // project's TS DOM lib typings.
     renotify: !!tag,
-  });
+  } as NotificationOptions);
   if (onClick) {
     notification.onclick = () => {
       window.focus();
