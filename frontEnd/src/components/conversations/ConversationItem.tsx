@@ -41,7 +41,7 @@ export function ConversationItem({
       onClick={onClick}
       aria-current={isActive}
       className={cn(
-        "flex w-full items-center gap-3 rounded-2xl px-3.5 py-3 text-left transition-colors",
+        "flex w-full items-center gap-3 rounded-sm px-3.5 py-3 text-left transition-colors",
         isActive ? "bg-accent-soft" : "hover:bg-surface-hover",
       )}
     >

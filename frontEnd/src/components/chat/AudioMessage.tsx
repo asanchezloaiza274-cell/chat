@@ -6,7 +6,7 @@ import { cn } from "../../utils/cn";
 
 const BAR_HEIGHTS = [40, 70, 45, 90, 60, 30, 80, 50, 65, 35, 75, 55, 40, 85, 45, 60, 30, 70, 50, 40];
 
-export function AudioMessage({ attachment, outgoing }: { attachment: AudioAttachment; outgoing?: boolean }) {
+export function AudioMessage({ attachment }: { attachment: AudioAttachment }) {
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
   const [elapsed, setElapsed] = useState(0);
@@ -68,7 +68,7 @@ export function AudioMessage({ attachment, outgoing }: { attachment: AudioAttach
         aria-label={playing ? "Pause voice message" : "Play voice message"}
         className={cn(
           "flex h-9 w-9 shrink-0 items-center justify-center disabled:opacity-50",
-          outgoing ? "bg-white/20 text-white" : "bg-accent text-accent-ink",
+          "bg-accent text-accent-ink",
         )}
       >
         {loading ? (

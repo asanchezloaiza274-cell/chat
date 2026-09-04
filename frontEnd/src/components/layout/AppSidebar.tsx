@@ -53,7 +53,7 @@ export function AppSidebar({ onNavigate, compact }: AppSidebarProps) {
               className={({ isActive }) =>
                 cn(
                   "flex items-center font-medium transition-colors",
-                  compact ? "h-11 w-11 justify-center rounded-full" : "gap-3 rounded-xl px-3 py-2 text-sm",
+                  compact ? "h-11 w-11 justify-center rounded-sm" : "gap-3 rounded-sm px-3 py-2 text-sm",
                   isActive
                     ? "bg-accent-soft text-accent"
                     : "text-ink-muted hover:bg-surface-hover hover:text-ink",
@@ -83,7 +83,7 @@ export function AppSidebar({ onNavigate, compact }: AppSidebarProps) {
           trigger={
             compact ? (
               <Tooltip label={currentUser.name} side="right">
-                <button className="flex h-11 w-11 items-center justify-center rounded-full transition-colors hover:bg-surface-hover">
+                <button className="flex h-11 w-11 items-center justify-center rounded-sm transition-colors hover:bg-surface-hover">
                   <Avatar
                     name={currentUser.name}
                     status={currentUser.status}
@@ -94,7 +94,7 @@ export function AppSidebar({ onNavigate, compact }: AppSidebarProps) {
                 </button>
               </Tooltip>
             ) : (
-              <button className="flex w-full items-center gap-2.5 rounded-xl px-2 py-2 text-left transition-colors hover:bg-surface-hover">
+              <button className="flex w-full items-center gap-2.5 rounded-sm px-2 py-2 text-left transition-colors hover:bg-surface-hover">
                 <Avatar
                   name={currentUser.name}
                   status={currentUser.status}

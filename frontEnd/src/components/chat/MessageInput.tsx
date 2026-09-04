@@ -227,21 +227,21 @@ export function MessageInput({ conversationId }: { conversationId: string }) {
       {pendingItems.length > 0 && (
         <div className="flex flex-wrap gap-2 border-b border-border px-6 py-3">
           {pendingItems.map(({ attachment: att }) => (
-            <div key={att.id} className="flex items-center gap-1.5 rounded-full border border-border bg-surface py-1 pl-1 pr-3 text-xs">
+            <div key={att.id} className="flex items-center gap-1.5 rounded-sm border border-border bg-surface py-1 pl-1 pr-3 text-xs">
               {att.type === "image" ? (
                 att.url ? (
-                  <img src={att.url} alt={att.name} className="h-7 w-7 rounded-full object-cover" />
+                  <img src={att.url} alt={att.name} className="h-7 w-7 rounded-xs object-cover" />
                 ) : (
-                  <div className="flex h-7 w-7 items-center justify-center rounded-full" style={{ backgroundColor: att.color }}>
+                  <div className="flex h-7 w-7 items-center justify-center rounded-xs" style={{ backgroundColor: att.color }}>
                     <ImageIcon size={12} className="text-white" />
                   </div>
                 )
               ) : att.type === "file" ? (
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-accent-soft text-accent">
+                <div className="flex h-7 w-7 items-center justify-center rounded-xs bg-accent-soft text-accent">
                   <FileText size={13} />
                 </div>
               ) : (
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-accent-soft text-accent">
+                <div className="flex h-7 w-7 items-center justify-center rounded-xs bg-accent-soft text-accent">
                   <Mic size={13} />
                 </div>
               )}
@@ -273,7 +273,7 @@ export function MessageInput({ conversationId }: { conversationId: string }) {
         ) : (
           <>
             <AttachmentMenu onFilesSelected={handleFilesSelected} />
-            <div className="flex flex-1 items-end gap-2 rounded-[22px] bg-surface px-4 py-1.5">
+            <div className="flex flex-1 items-end gap-2 rounded-sm bg-surface px-4 py-1.5">
               <textarea
                 ref={textareaRef}
                 value={text}
@@ -299,7 +299,7 @@ export function MessageInput({ conversationId }: { conversationId: string }) {
             <IconButton label="Cancel recording" variant="ghost" onClick={cancelRecording}>
               <Trash2 size={19} />
             </IconButton>
-            <IconButton label="Send voice message" variant="solid" className="bg-gradient-to-br from-accent to-accent-hover text-accent-ink hover:brightness-110" onClick={handleSendRecording}>
+            <IconButton label="Send voice message" variant="solid" className="bg-accent text-accent-ink hover:bg-accent-hover" onClick={handleSendRecording}>
               <Send size={17} />
             </IconButton>
           </>
@@ -307,7 +307,7 @@ export function MessageInput({ conversationId }: { conversationId: string }) {
           <IconButton
             label="Send message"
             onClick={handleSend}
-            className="bg-gradient-to-br from-accent to-accent-hover text-accent-ink hover:brightness-110"
+            className="bg-accent text-accent-ink hover:bg-accent-hover"
           >
             <Send size={17} />
           </IconButton>

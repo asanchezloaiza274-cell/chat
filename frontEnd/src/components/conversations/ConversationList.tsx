@@ -54,7 +54,7 @@ export function ConversationList({ onOpenMenu }: { onOpenMenu: () => void }) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search conversations"
-            className="h-10 w-full rounded-full border border-border bg-surface pl-9 pr-8 text-sm text-ink placeholder:text-ink-faint outline-none focus:border-accent"
+            className="h-10 w-full rounded-sm border border-border bg-surface pl-9 pr-8 text-sm text-ink placeholder:text-ink-faint outline-none focus:border-accent"
           />
           {query && (
             <button

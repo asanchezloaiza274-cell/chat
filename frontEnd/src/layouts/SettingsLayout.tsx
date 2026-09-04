@@ -37,7 +37,7 @@ export function SettingsLayout() {
                 to={to}
                 className={({ isActive }) =>
                   cn(
-                    "flex shrink-0 items-center gap-2.5 rounded-full px-3.5 py-2 text-sm font-medium transition-colors md:rounded-xl",
+                    "flex shrink-0 items-center gap-2.5 rounded-sm px-3.5 py-2 text-sm font-medium transition-colors",
                     isActive
                       ? "bg-accent-soft text-accent"
                       : "text-ink-muted hover:bg-surface-hover hover:text-ink",

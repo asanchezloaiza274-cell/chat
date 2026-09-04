@@ -133,7 +133,7 @@ export default function CreateGroup() {
                 onClick={() => toggleUser(user.id)}
                 rightElement={
                   selectedIds.includes(user.id) ? (
-                    <span className="flex h-5 w-5 shrink-0 items-center justify-center bg-accent text-white">
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center bg-accent text-accent-ink">
                       <Check size={12} />
                     </span>
                   ) : undefined

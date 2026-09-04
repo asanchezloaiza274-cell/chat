@@ -23,7 +23,7 @@ export function Switch({ checked, onChange, label, disabled }: SwitchProps) {
     >
       <span
         className={cn(
-          "inline-block h-[15px] w-[15px] transform bg-white transition-transform",
+          "inline-block h-[15px] w-[15px] transform bg-canvas transition-transform",
           checked ? "translate-x-[21px]" : "translate-x-[3px]",
         )}
       />

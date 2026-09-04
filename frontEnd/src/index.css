@@ -4,78 +4,79 @@
   --font-sans: "Sora", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
-  /* Backgrounds — soft, near-white neutrals so the violet/blue accent glow
-     is what carries color and depth, not dark chrome */
-  --color-canvas: #fafaf8;
-  --color-rail: #fcfbf9;
+  /* Backgrounds — flat, neutral grayscale. No tint, no glow: contrast and
+     type carry the hierarchy instead of color. */
+  --color-canvas: #ffffff;
+  --color-rail: #fafafa;
   --color-panel: #ffffff;
-  --color-surface: #f7f6f4;
-  --color-surface-hover: #f1f0ee;
-  --color-surface-active: #ebe9e6;
+  --color-surface: #f4f4f4;
+  --color-surface-hover: #ebebeb;
+  --color-surface-active: #dedede;
 
   /* Text */
-  --color-ink: #1c1c22;
-  --color-ink-muted: #8b8b95;
-  --color-ink-faint: #b5b4bd;
+  --color-ink: #0a0a0a;
+  --color-ink-muted: #737373;
+  --color-ink-faint: #a3a3a3;
 
-  /* Borders */
-  --color-border: rgba(28, 28, 34, 0.08);
-  --color-border-strong: rgba(28, 28, 34, 0.16);
+  /* Borders — the primary structuring device in place of shadow/tint */
+  --color-border: rgba(0, 0, 0, 0.12);
+  --color-border-strong: rgba(0, 0, 0, 0.24);
 
-  /* Accent — a violet-to-blue gradient pair used with intent (avatars, CTAs,
-     own-message bubbles); accent-hover doubles as the gradient's second stop */
-  --color-accent: #7c6fef;
-  --color-accent-hover: #5fa8e8;
-  --color-accent-soft: rgba(124, 111, 239, 0.12);
+  /* Accent — plain ink black. No hue, no gradient; "accent" just means
+     highest-contrast surface (own-message bubbles, primary CTAs, active nav). */
+  --color-accent: #0a0a0a;
+  --color-accent-hover: #000000;
+  --color-accent-soft: rgba(0, 0, 0, 0.06);
   --color-accent-ink: #ffffff;
 
-  /* Semantic */
-  --color-success: #2fb673;
-  --color-success-soft: rgba(47, 182, 115, 0.14);
-  --color-danger: #e2504f;
-  --color-danger-hover: #cc3d3d;
-  --color-danger-soft: rgba(226, 80, 79, 0.11);
-  --color-warning: #dc9a3c;
-  --color-warning-soft: rgba(220, 154, 60, 0.14);
+  /* Semantic — kept desaturated and used sparingly, only where color is the
+     signal itself (destructive actions, status, online dot) */
+  --color-success: #1a7f45;
+  --color-success-soft: rgba(26, 127, 69, 0.1);
+  --color-danger: #c0271f;
+  --color-danger-hover: #9c1f19;
+  --color-danger-soft: rgba(192, 39, 31, 0.08);
+  --color-warning: #96600f;
+  --color-warning-soft: rgba(150, 96, 15, 0.1);
 
-  /* Radius — generous and round by default; nothing reads as a hard rectangle */
+  /* Radius — small and deliberate; corners read as square, not round */
   --radius-none: 0px;
-  --radius-xs: 8px;
-  --radius-sm: 12px;
+  --radius-xs: 2px;
+  --radius-sm: 4px;
 }
 
-/* Dark theme — same Aura shapes and violet/blue accent, moved onto dark
-   neutral surfaces. Applied via a `data-theme` attribute set in JS (see
+/* Dark theme — true black/white inversion of the same flat, borders-first
+   language. Applied via a `data-theme` attribute set in JS (see
    src/utils/theme.ts) so the resolved theme (including "system") is always
    known at paint time. The bare :root above already carries the light
    (default) palette, so only the dark override is needed here. */
 :root[data-theme="dark"] {
-  --color-canvas: #131218;
-  --color-rail: #16151c;
-  --color-panel: #1b1a22;
-  --color-surface: #212028;
-  --color-surface-hover: #2a2932;
-  --color-surface-active: #34333d;
+  --color-canvas: #0a0a0a;
+  --color-rail: #0d0d0d;
+  --color-panel: #111111;
+  --color-surface: #191919;
+  --color-surface-hover: #222222;
+  --color-surface-active: #2c2c2c;
 
-  --color-ink: #f2f1f6;
-  --color-ink-muted: #9b99a8;
-  --color-ink-faint: #605e6c;
+  --color-ink: #f5f5f5;
+  --color-ink-muted: #9c9c9c;
+  --color-ink-faint: #5c5c5c;
 
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-border-strong: rgba(255, 255, 255, 0.18);
+  --color-border: rgba(255, 255, 255, 0.12);
+  --color-border-strong: rgba(255, 255, 255, 0.24);
 
-  --color-accent: #8b7bf5;
-  --color-accent-hover: #5fa8e8;
-  --color-accent-soft: rgba(139, 123, 245, 0.18);
-  --color-accent-ink: #ffffff;
+  --color-accent: #f5f5f5;
+  --color-accent-hover: #ffffff;
+  --color-accent-soft: rgba(255, 255, 255, 0.1);
+  --color-accent-ink: #0a0a0a;
 
-  --color-success: #3ecf8e;
-  --color-success-soft: rgba(62, 207, 142, 0.16);
-  --color-danger: #f0605f;
-  --color-danger-hover: #d94d4c;
-  --color-danger-soft: rgba(240, 96, 95, 0.15);
-  --color-warning: #eab04a;
-  --color-warning-soft: rgba(234, 176, 74, 0.15);
+  --color-success: #3fbf76;
+  --color-success-soft: rgba(63, 191, 118, 0.16);
+  --color-danger: #e2554d;
+  --color-danger-hover: #ef6a62;
+  --color-danger-soft: rgba(226, 85, 77, 0.16);
+  --color-warning: #d99a3d;
+  --color-warning-soft: rgba(217, 154, 61, 0.16);
 }
 
 @layer base {
@@ -91,10 +92,6 @@
 
   body {
     background-color: var(--color-canvas);
-    background-image:
-      radial-gradient(1100px circle at 12% -8%, rgba(124, 111, 239, 0.08), transparent 55%),
-      radial-gradient(900px circle at 100% 0%, rgba(95, 168, 232, 0.06), transparent 50%);
-    background-attachment: fixed;
     color: var(--color-ink);
     font-feature-settings: "cv02", "cv03", "cv04", "cv11", "tnum";
     -webkit-font-smoothing: antialiased;
@@ -104,6 +101,7 @@
 
   h1, h2, h3 {
     letter-spacing: -0.018em;
+    font-weight: 600;
   }
 
   ::selection {
@@ -143,17 +141,18 @@
   }
 
   /* Elevation for floating/overlay surfaces only (modals, menus, toasts) —
-     panels that sit in the page flow get depth from surface tone, not shadow */
+     a crisp border does most of the work; shadow is a faint, tight, neutral
+     black — no tint, no soft glow */
   .shadow-elevated {
     box-shadow:
-      0 16px 40px -12px rgba(0, 0, 0, 0.6),
-      0 4px 12px -4px rgba(0, 0, 0, 0.45);
+      0 12px 24px -8px rgba(0, 0, 0, 0.16),
+      0 2px 6px -2px rgba(0, 0, 0, 0.1);
   }
 
   .shadow-elevated-sm {
     box-shadow:
-      0 8px 20px -8px rgba(0, 0, 0, 0.55),
-      0 2px 6px -2px rgba(0, 0, 0, 0.4);
+      0 6px 14px -6px rgba(0, 0, 0, 0.14),
+      0 1px 3px -1px rgba(0, 0, 0, 0.1);
   }
 
   .animate-fade-in {

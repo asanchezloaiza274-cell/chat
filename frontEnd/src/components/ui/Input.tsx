@@ -31,7 +31,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             id={inputId}
             aria-invalid={!!error}
             className={cn(
-              "h-10 w-full rounded-full border border-border bg-surface px-4 text-sm text-ink placeholder:text-ink-faint outline-none transition-colors focus:border-accent disabled:cursor-not-allowed disabled:opacity-50",
+              "h-10 w-full rounded-sm border border-border bg-surface px-4 text-sm text-ink placeholder:text-ink-faint outline-none transition-colors focus:border-accent disabled:cursor-not-allowed disabled:opacity-50",
               leftIcon && "pl-10",
               rightElement && "pr-10",
               error && "border-danger focus:border-danger",

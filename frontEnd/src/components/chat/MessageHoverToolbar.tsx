@@ -49,7 +49,7 @@ export function MessageHoverToolbar({
   return (
     <div
       className={cn(
-        "shadow-elevated-sm absolute -top-4 z-10 flex items-center gap-0.5 rounded-full border border-border-strong bg-panel p-0.5 opacity-0 transition-opacity group-hover/message:opacity-100",
+        "shadow-elevated-sm absolute -top-4 z-10 flex items-center gap-0.5 rounded-sm border border-border-strong bg-panel p-0.5 opacity-0 transition-opacity group-hover/message:opacity-100",
         isOwn ? "right-2" : "left-2",
       )}
     >
@@ -58,7 +58,7 @@ export function MessageHoverToolbar({
           key={emoji}
           onClick={() => onReact(emoji)}
           aria-label={`React with ${emoji}`}
-          className="flex h-7 w-7 items-center justify-center rounded-full text-sm hover:bg-surface-hover"
+          className="flex h-7 w-7 items-center justify-center rounded-xs text-sm hover:bg-surface-hover"
         >
           {emoji}
         </button>
@@ -68,7 +68,7 @@ export function MessageHoverToolbar({
         trigger={
           <button
             aria-label="More actions"
-            className="flex h-7 w-7 items-center justify-center rounded-full text-ink-muted hover:bg-surface-hover hover:text-ink"
+            className="flex h-7 w-7 items-center justify-center rounded-xs text-ink-muted hover:bg-surface-hover hover:text-ink"
           >
             <MoreHorizontal size={15} />
           </button>

@@ -29,7 +29,7 @@ export function ReplyPreview({ senderName, preview, onCancel, variant = "compose
   }
 
   return (
-    <div className="mx-4 mt-3 flex items-center justify-between gap-3 rounded-2xl border-l-[3px] border-l-accent bg-surface px-4 py-3">
+    <div className="mx-4 mt-3 flex items-center justify-between gap-3 rounded-sm border-l-[3px] border-l-accent bg-surface px-4 py-3">
       <div className="flex min-w-0 items-start gap-2">
         <CornerUpLeft size={15} className="mt-0.5 shrink-0 text-accent" />
         <div className="min-w-0">
