@@ -33,6 +33,13 @@ if not DEBUG and SECRET_KEY == _INSECURE_SECRET_KEY:
         "Refusing to start with the insecure default in production."
     )
 
+if not DEBUG:
+    # Render (y la mayoría de PaaS) terminan TLS en un proxy y reenvían
+    # tráfico plano a la app; sin esto Django cree que la conexión es HTTP.
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
 
 ALLOWED_HOSTS = [
     "localhost",
@@ -359,10 +366,16 @@ CORS_ALLOWED_ORIGINS = [
     "https://woven-zen-deny.ngrok-free.dev",
 ]
 
-# Production:
-# Cuando tengas la URL de Netlify agregaremos:
-#
-# "https://tu-proyecto.netlify.app"
+# Production: en Render, define EXTRA_ALLOWED_ORIGINS con la(s) URL(s) de
+# Netlify separadas por comas (ej. "https://tu-proyecto.netlify.app") sin
+# tener que tocar este archivo.
+_extra_origins = [
+    origin.strip()
+    for origin in os.environ.get("EXTRA_ALLOWED_ORIGINS", "").split(",")
+    if origin.strip()
+]
+
+CORS_ALLOWED_ORIGINS += _extra_origins
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -371,16 +384,10 @@ CORS_ALLOW_CREDENTIALS = True
 # CSRF
 # ============================================================
 
-# Cuando tengas la URL de Netlify agregaremos:
-#
-# CSRF_TRUSTED_ORIGINS = [
-#     "https://tu-proyecto.netlify.app",
-# ]
-
 CSRF_TRUSTED_ORIGINS = [
     "https://woven-zen-deny.ngrok-free.dev",
     "https://hslnzw92-8000.use.devtunnels.ms",
-]
+] + _extra_origins
 
 
 # ============================================================
