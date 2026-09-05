@@ -7,7 +7,7 @@ import { IconButton } from "../ui/IconButton";
 import { Dropdown } from "../ui/Dropdown";
 import { EmptyState } from "../ui/EmptyState";
 import { ConversationListSkeleton } from "../ui/Skeleton";
-import { getConversationName } from "../../utils/conversationHelpers";
+import { getConversationName, getLastMessage } from "../../utils/conversationHelpers";
 
 export function ConversationList({ onOpenMenu }: { onOpenMenu: () => void }) {
   const { conversations, messages, users, currentUser, typingUsers, isLoading } = useChat();
@@ -15,11 +15,21 @@ export function ConversationList({ onOpenMenu }: { onOpenMenu: () => void }) {
   const { id: activeId } = useParams();
   const [query, setQuery] = useState("");
 
+  const sorted = useMemo(() => {
+    const lastActivity = (id: string, createdAt: string) => {
+      const lastMessage = getLastMessage(messages[id]);
+      return lastMessage ? new Date(lastMessage.createdAt).getTime() : new Date(createdAt).getTime();
+    };
+    return [...conversations].sort(
+      (a, b) => lastActivity(b.id, b.createdAt) - lastActivity(a.id, a.createdAt),
+    );
+  }, [conversations, messages]);
+
   const filtered = useMemo(() => {
-    if (!query.trim()) return conversations;
+    if (!query.trim()) return sorted;
     const q = query.trim().toLowerCase();
-    return conversations.filter((c) => getConversationName(c, users, currentUser.id).toLowerCase().includes(q));
-  }, [conversations, users, currentUser.id, query]);
+    return sorted.filter((c) => getConversationName(c, users, currentUser.id).toLowerCase().includes(q));
+  }, [sorted, users, currentUser.id, query]);
 
   const pinned = filtered.filter((c) => c.pinned);
   const rest = filtered.filter((c) => !c.pinned);
