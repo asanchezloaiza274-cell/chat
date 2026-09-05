@@ -3,6 +3,8 @@ import uuid
 from django.conf import settings
 from django.db import models
 
+from .storage import AttachmentCloudinaryStorage
+
 
 class Conversation(models.Model):
     class Type(models.TextChoices):
@@ -84,7 +86,7 @@ class MessageAttachment(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     message = models.ForeignKey(Message, on_delete=models.CASCADE, related_name='attachments')
-    file = models.FileField(upload_to='attachments/%Y/%m/')
+    file = models.FileField(upload_to='attachments/%Y/%m/', storage=AttachmentCloudinaryStorage())
     attachment_type = models.CharField(max_length=10, choices=Type.choices)
     original_name = models.CharField(max_length=255)
     size = models.BigIntegerField(default=0)

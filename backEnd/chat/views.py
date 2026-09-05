@@ -1,6 +1,5 @@
 import json
 
-from cloudinary_storage.storage import RawMediaCloudinaryStorage, VideoMediaCloudinaryStorage
 from django.conf import settings
 from django.db.models import Max, Q
 from django.db.models.functions import Coalesce
@@ -342,15 +341,6 @@ def _create_attachment(message, file, meta):
         except Exception:
             pass
         file.seek(0)
-
-    # Cloudinary necesita saber el resource_type correcto: las imágenes usan
-    # el storage por defecto (settings.STORAGES), pero audio y "otros
-    # archivos" (PDF, docs, zip) necesitan un storage distinto o Cloudinary
-    # los rechaza con "Invalid image file".
-    if attachment_type == MessageAttachment.Type.AUDIO:
-        attachment.file.storage = VideoMediaCloudinaryStorage()
-    elif attachment_type == MessageAttachment.Type.FILE:
-        attachment.file.storage = RawMediaCloudinaryStorage()
 
     attachment.save()
     return attachment
