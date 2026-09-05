@@ -33,3 +33,5 @@ tzdata==2026.3
 ujson==5.13.0
 whitenoise==6.9.0
 zope.interface==8.5
+django-cloudinary-storage
+cloudinary
