@@ -43,7 +43,7 @@ export function AudioMessage({ attachment, isOwn }: { attachment: AudioAttachmen
     <div
       className={cn(
         "flex w-64 items-center gap-3 rounded-full px-3 py-2.5",
-        isOwn ? "border border-accent/15 bg-accent-soft" : "border border-border bg-surface",
+        isOwn ? "border border-accent/15 bg-accent-soft text-accent" : "border border-border bg-surface text-ink",
       )}
     >
       {attachment.url && (
