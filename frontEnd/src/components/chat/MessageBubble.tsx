@@ -115,7 +115,9 @@ export function MessageBubble({
             "min-w-0 rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm transition-colors",
             isOwn ? "bg-accent text-accent-ink" : "border border-border bg-surface text-ink",
             isOwn ? (showAvatar ? "rounded-br-md" : "") : showAvatar ? "rounded-bl-md" : "",
-            (images.length > 0 || otherAttachments.length > 0) && !message.text && "bg-transparent p-0 shadow-none",
+            (images.length > 0 || otherAttachments.length > 0) &&
+              !message.text &&
+              "border-0 bg-transparent p-0 shadow-none",
             isActiveMatch && "outline outline-2 outline-offset-1 outline-warning",
           )}
         >
