@@ -6,7 +6,7 @@ import { cn } from "../../utils/cn";
 
 const BAR_HEIGHTS = [40, 70, 45, 90, 60, 30, 80, 50, 65, 35, 75, 55, 40, 85, 45, 60, 30, 70, 50, 40];
 
-export function AudioMessage({ attachment }: { attachment: AudioAttachment }) {
+export function AudioMessage({ attachment, isOwn }: { attachment: AudioAttachment; isOwn?: boolean }) {
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
   const [elapsed, setElapsed] = useState(0);
@@ -40,7 +40,12 @@ export function AudioMessage({ attachment }: { attachment: AudioAttachment }) {
   }
 
   return (
-    <div className="flex w-64 items-center gap-3 border border-border bg-surface px-3 py-2.5">
+    <div
+      className={cn(
+        "flex w-64 items-center gap-3 rounded-full px-3 py-2.5",
+        isOwn ? "border border-accent/15 bg-accent-soft" : "border border-border bg-surface",
+      )}
+    >
       {attachment.url && (
         <audio
           ref={audioRef}
@@ -67,28 +72,28 @@ export function AudioMessage({ attachment }: { attachment: AudioAttachment }) {
         disabled={!attachment.url}
         aria-label={playing ? "Pause voice message" : "Play voice message"}
         className={cn(
-          "flex h-9 w-9 shrink-0 items-center justify-center disabled:opacity-50",
-          "bg-accent text-accent-ink",
+          "flex h-10 w-10 shrink-0 items-center justify-center rounded-full shadow-sm transition-transform disabled:opacity-50",
+          "bg-accent text-accent-ink hover:scale-105 active:scale-95",
         )}
       >
         {loading ? (
           <Loader2 size={15} className="animate-spin" />
         ) : playing ? (
-          <Pause size={15} />
+          <Pause size={15} fill="currentColor" />
         ) : (
-          <Play size={15} className="ml-0.5" />
+          <Play size={15} className="ml-0.5" fill="currentColor" />
         )}
       </button>
 
       <div className="flex flex-1 items-center gap-1.5">
         <Mic size={13} className="shrink-0 opacity-50" />
-        <div className="flex h-6 flex-1 items-center gap-[2px] overflow-hidden">
+        <div className="flex h-6 flex-1 items-center gap-[3px] overflow-hidden">
           {BAR_HEIGHTS.map((h, i) => (
             <span
               key={i}
               className={cn(
-                "w-[2px] shrink-0 transition-colors",
-                i / BAR_HEIGHTS.length <= progress ? "opacity-100" : "opacity-30",
+                "w-[2.5px] shrink-0 rounded-full transition-opacity",
+                i / BAR_HEIGHTS.length <= progress ? "opacity-100" : "opacity-25",
               )}
               style={{ height: `${h}%`, backgroundColor: "currentColor" }}
             />

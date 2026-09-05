@@ -64,7 +64,7 @@ export function MessageBubble({
     return (
       <div className={cn("flex items-end gap-2 px-6 py-0.5", isOwn && "flex-row-reverse")}>
         <div className="w-7 shrink-0" />
-        <div className="flex items-center gap-1.5 rounded-sm border border-border px-3.5 py-2 text-sm italic text-ink-faint">
+        <div className="flex items-center gap-1.5 rounded-2xl border border-dashed border-border px-3.5 py-2 text-sm italic text-ink-faint">
           <Ban size={13} />
           This message was deleted
         </div>
@@ -112,12 +112,11 @@ export function MessageBubble({
 
         <div
           className={cn(
-            "min-w-0 rounded-sm px-4 py-2.5 text-sm leading-relaxed transition-colors",
-            isOwn
-              ? "bg-accent text-accent-ink"
-              : "bg-surface text-ink",
-            (images.length > 0 || otherAttachments.length > 0) && !message.text && "bg-transparent p-0",
-            isActiveMatch && "outline outline-1 outline-warning",
+            "min-w-0 rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm transition-colors",
+            isOwn ? "bg-accent text-accent-ink" : "border border-border bg-surface text-ink",
+            isOwn ? (showAvatar ? "rounded-br-md" : "") : showAvatar ? "rounded-bl-md" : "",
+            (images.length > 0 || otherAttachments.length > 0) && !message.text && "bg-transparent p-0 shadow-none",
+            isActiveMatch && "outline outline-2 outline-offset-1 outline-warning",
           )}
         >
           {message.replyTo && (
@@ -137,8 +136,8 @@ export function MessageBubble({
 
           {otherAttachments.map((att) => (
             <div key={att.id} className="mb-1">
-              {att.type === "file" && <FileMessage attachment={att} />}
-              {att.type === "audio" && <AudioMessage attachment={att} />}
+              {att.type === "file" && <FileMessage attachment={att} isOwn={isOwn} />}
+              {att.type === "audio" && <AudioMessage attachment={att} isOwn={isOwn} />}
             </div>
           ))}
 

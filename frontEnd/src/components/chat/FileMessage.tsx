@@ -2,15 +2,21 @@ import { useState } from "react";
 import { FileText, Download, Loader2, AlertCircle } from "lucide-react";
 import type { FileAttachment } from "../../types";
 import { formatFileSize } from "../../utils/format";
+import { cn } from "../../utils/cn";
 
-export function FileMessage({ attachment }: { attachment: FileAttachment }) {
+export function FileMessage({ attachment, isOwn }: { attachment: FileAttachment; isOwn?: boolean }) {
   const [downloading, setDownloading] = useState(false);
   const failed = attachment.status === "failed";
   const uploading = attachment.status === "uploading";
 
   return (
-    <div className="flex w-64 items-center gap-3 border border-border bg-surface px-3 py-2.5">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-accent-soft text-accent">
+    <div
+      className={cn(
+        "flex w-64 items-center gap-3 rounded-2xl px-3 py-2.5",
+        isOwn ? "border border-accent/15 bg-accent-soft" : "border border-border bg-surface",
+      )}
+    >
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent">
         <FileText size={18} />
       </div>
       <div className="min-w-0 flex-1">
