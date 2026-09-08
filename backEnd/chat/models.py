@@ -83,6 +83,7 @@ def attachment_upload_path(instance, filename):
     subfolder = {
         'image': 'images',
         'audio': 'audio',
+        'video': 'video',
     }.get(instance.attachment_type, 'files')
     now = timezone.now()
     return f'attachments/{subfolder}/{now:%Y/%m}/{filename}'
@@ -92,6 +93,7 @@ class MessageAttachment(models.Model):
         IMAGE = 'image', 'Image'
         FILE = 'file', 'File'
         AUDIO = 'audio', 'Audio'
+        VIDEO = 'video', 'Video'
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     message = models.ForeignKey(Message, on_delete=models.CASCADE, related_name='attachments')

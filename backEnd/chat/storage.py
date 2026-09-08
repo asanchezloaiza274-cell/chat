@@ -14,7 +14,7 @@ class AttachmentCloudinaryStorage(Storage):
 
     def _backend_for(self, name):
         parts = name.split('/')
-        if 'audio' in parts:
+        if 'audio' in parts or 'video' in parts:
             return VideoMediaCloudinaryStorage()
         if 'images' in parts:
             return MediaCloudinaryStorage()

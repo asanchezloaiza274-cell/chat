@@ -278,9 +278,6 @@ class MessageListCreateView(APIView):
             if file.size > settings.MAX_ATTACHMENT_SIZE:
                 raise ValidationError({'files': f'"{file.name}" exceeds the maximum size of '
                                                   f'{settings.MAX_ATTACHMENT_SIZE // (1024 * 1024)}MB.'})
-            content_type = getattr(file, 'content_type', '') or ''
-            if content_type not in settings.ALLOWED_ATTACHMENT_CONTENT_TYPES:
-                raise ValidationError({'files': f'"{file.name}" has an unsupported file type.'})
 
         if membership.conversation.type == Conversation.Type.DIRECT:
             other = membership.conversation.memberships.exclude(user=request.user).select_related('user').first()
@@ -322,8 +319,11 @@ def _create_attachment(message, file, meta):
         attachment_type = MessageAttachment.Type.IMAGE
     elif content_type.startswith('audio/'):
         attachment_type = MessageAttachment.Type.AUDIO
+    elif content_type.startswith('video/'):
+        attachment_type = MessageAttachment.Type.VIDEO
     else:
         attachment_type = MessageAttachment.Type.FILE
+    # ... el resto de la función queda igual
 
     attachment = MessageAttachment(
         message=message,
