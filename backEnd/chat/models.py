@@ -3,6 +3,8 @@ import uuid
 from django.conf import settings
 from django.db import models
 
+
+from django.utils import timezone
 from .storage import AttachmentCloudinaryStorage
 
 
@@ -77,6 +79,13 @@ class Message(models.Model):
     def __str__(self):
         return f'Message {self.id} in {self.conversation_id}'
 
+def attachment_upload_path(instance, filename):
+    subfolder = {
+        'image': 'images',
+        'audio': 'audio',
+    }.get(instance.attachment_type, 'files')
+    now = timezone.now()
+    return f'attachments/{subfolder}/{now:%Y/%m}/{filename}'
 
 class MessageAttachment(models.Model):
     class Type(models.TextChoices):
@@ -86,7 +95,7 @@ class MessageAttachment(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     message = models.ForeignKey(Message, on_delete=models.CASCADE, related_name='attachments')
-    file = models.FileField(upload_to='attachments/%Y/%m/', storage=AttachmentCloudinaryStorage())
+    file = models.FileField(upload_to=attachment_upload_path, storage=AttachmentCloudinaryStorage())
     attachment_type = models.CharField(max_length=10, choices=Type.choices)
     original_name = models.CharField(max_length=255)
     size = models.BigIntegerField(default=0)

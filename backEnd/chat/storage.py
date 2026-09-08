@@ -1,5 +1,3 @@
-import os
-
 from django.core.files.storage import Storage
 
 from cloudinary_storage.storage import (
@@ -8,23 +6,18 @@ from cloudinary_storage.storage import (
     VideoMediaCloudinaryStorage,
 )
 
-AUDIO_VIDEO_EXTENSIONS = {'.webm', '.mp3', '.mp4', '.ogg', '.wav', '.m4a', '.mov', '.avi', '.mkv'}
-IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.avif', '.svg'}
-
 
 class AttachmentCloudinaryStorage(Storage):
-    """Elige el storage correcto de Cloudinary según la extensión del
-    archivo, tanto al guardar como al generar la URL de lectura, para que
-    la elección sea consistente sin depender de estado en memoria.
-    Hereda de Storage para obtener gratis los métodos internos que Django
-    necesita (generate_filename, get_valid_name, etc.)."""
+    """Elige el storage correcto de Cloudinary según la subcarpeta del
+    archivo (images/audio/files), ya que Cloudinary borra la extensión
+    del nombre tras subirlo, así que no se puede usar como pista."""
 
     def _backend_for(self, name):
-        ext = os.path.splitext(name)[1].lower()
-        if ext in IMAGE_EXTENSIONS:
-            return MediaCloudinaryStorage()
-        if ext in AUDIO_VIDEO_EXTENSIONS:
+        parts = name.split('/')
+        if 'audio' in parts:
             return VideoMediaCloudinaryStorage()
+        if 'images' in parts:
+            return MediaCloudinaryStorage()
         return RawMediaCloudinaryStorage()
 
     def _save(self, name, content):
